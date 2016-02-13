@@ -26,5 +26,24 @@
   <class name="l1t::emtf::MTF7Trailer"/>
   <class name="l1t::emtf::AMC13Trailer"/>
 
+  <class name="l1t::emtf::InternalTrack"/>
+  <class name="l1t::emtf::InternalTrackCollection"/>
+  <class name="edm::Wrapper<l1t::emtf::InternalTrackCollection>"/>
+
+  <class name="l1t::emtf::CSCPrimitive"/>
+  <class name="l1t::emtf::CSCPrimitiveCollection"/>
+
+  <!-- <class name="L1TMuon::InternalTrack"/> -->
+  <!-- <class name="L1TMuon::InternalTrackCollection"/> -->
+  <!-- <class name="edm::Wrapper<L1TMuon::InternalTrackCollection>"/> -->
+
+  <!-- <class name="L1TMuon::InternalTrack"/> -->
+  <!-- <class name="std::vector<L1TMuon::InternalTrack>"/> -->
+  <!-- <class name="edm::Wrapper< std::vector<L1TMuon::InternalTrack> >"/> -->
+
+  <!-- <class name="L1TMuon::TriggerPrimitive"/> -->
+  <!-- <class name="L1TMuon::TriggerPrimitiveCollection"/> -->
+  <!-- <class name="edm::Wrapper<L1TMuon::TriggerPrimitiveCollection>"/> -->
+
  </selection>
 </lcgdict>
