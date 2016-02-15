@@ -29,6 +29,7 @@
 #include "L1Trigger/L1TMuonEndCap/interface/PtAssignment.h"
 #include "L1Trigger/L1TMuonEndCap/interface/MakeRegionalCand.h"
 
+#include "DataFormats/L1TMuon/interface/EMTF/InternalTrack.h"
 
 using namespace L1TMuon;
 
@@ -37,7 +38,10 @@ L1TMuonEndCapTrackProducer::L1TMuonEndCapTrackProducer(const PSet& p) {
 
   inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(p.getParameter<edm::InputTag>("CSCInput"));
   
-  produces<l1t::RegionalMuonCandBxCollection >("EMTF");
+  produces< l1t::RegionalMuonCandBxCollection >("EMTF");
+  // produces< std::vector<L1TMuon::InternalTrack> >("EMTF");
+  // produces< L1TMuon::InternalTrackCollection >("EMTF");
+  produces< l1t::emtf::InternalTrackCollection >("EMTF");
 }
 
 
@@ -45,21 +49,21 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 			       const edm::EventSetup& es) {
 
   //bool verbose = false;
+  float pi = 3.14159265359;
 
 
   //std::cout<<"Start Upgraded Track Finder Producer::::: event = "<<ev.id().event()<<"\n\n";
 
   //fprintf (write,"12345\n"); //<-- part of printing text file to send verilog code, not needed if George's package is included
 
-
-  //std::auto_ptr<L1TMuon::InternalTrackCollection> FoundTracks (new L1TMuon::InternalTrackCollection);
   std::auto_ptr<l1t::RegionalMuonCandBxCollection > OutputCands (new l1t::RegionalMuonCandBxCollection);
+  // std::auto_ptr<L1TMuon::InternalTrackCollection> FoundTracks (new L1TMuon::InternalTrackCollection);
+  // std::auto_ptr< std::vector<L1TMuon::InternalTrack> > FoundTracks (new std::vector< L1TMuon::InternalTrack> );
+  std::auto_ptr<l1t::emtf::InternalTrackCollection> FoundTracksNew (new l1t::emtf::InternalTrackCollection);
 
   std::vector<BTrack> PTracks[12];
 
   std::vector<TriggerPrimitive> tester;
-  //std::vector<InternalTrack> FoundTracks;
-  
   
   //////////////////////////////////////////////
   ///////// Make Trigger Primitives ////////////
@@ -253,14 +257,27 @@ for(int SectIndex=0;SectIndex<12;SectIndex++){//perform TF on all 12 sectors
 		tempTrack.theta = FourBest[fbest].theta;
 		tempTrack.rank = FourBest[fbest].winner.Rank();
 		tempTrack.deltas = FourBest[fbest].deltas;
-		std::vector<int> ps, ts;
 
+		l1t::emtf::InternalTrack tempTrackNew;
+		tempTrackNew.set_type      (  2                                        );
+		tempTrackNew.set_phi_local ( (FourBest[fbest].phi / 60) - 2            ); // The "phi_full" conversion. Right? - AWB 13.02.16
+		tempTrackNew.set_theta_loc (  FourBest[fbest].theta                    ); // This is some bizzare local definition of theta
+		tempTrackNew.set_theta_deg ( (FourBest[fbest].theta * 0.2851562) + 8.5 ); // This is the true global |theta| in degrees; set to theta later
+		tempTrackNew.set_theta_rad (  tempTrackNew.Theta_deg() * (pi/180)      ); // This is the true global |theta| in radians; set to theta later
+		tempTrackNew.set_eta       ( -1 * log( tan( tempTrackNew.Theta_rad()/2 ) ) ); // This is the global |eta|; set to eta later
+		tempTrackNew.set_rank      (  FourBest[fbest].winner.Rank() );
+		// Can't have a vector of vectors of vectors in ROOT files
+ 		// tempTrackNew.set_deltas(FourBest[fbest].deltas);
+
+		std::vector<int> ps, ts;
 
 		int sector = -1;
 		bool ME13 = false;
 		int me1address = 0, me2address = 0, CombAddress = 0, mode = 0;
 
 		for(std::vector<ConvertedHit>::iterator A = FourBest[fbest].AHits.begin();A != FourBest[fbest].AHits.end();A++){
+
+		  l1t::emtf::CSCPrimitive tempStub;
 
 			if(A->Phi() != -999){
 
@@ -269,10 +286,52 @@ for(int SectIndex=0;SectIndex<12;SectIndex++){//perform TF on all 12 sectors
 				int trknm = A->TP().getCSCData().trknmb;
 
 				tempTrack.addStub(A->TP());
+				// tempTrackNew.add_stub(); // AWB TODO
 				ps.push_back(A->Phi());
 				ts.push_back(A->Theta());
 				sector = (A->TP().detId<CSCDetId>().endcap() -1)*6 + A->TP().detId<CSCDetId>().triggerSector() - 1;
 				//std::cout<<"Q: "<<A->Quality()<<", keywire: "<<A->Wire()<<", strip: "<<A->Strip()<<std::endl;
+
+				// CSCDetId variables defined in: 
+			        // https://github.com/cms-l1t-offline/cmssw/blob/l1t-muon-pass2-CMSSW_8_0_0_pre5/DataFormats/MuonDetId/interface/CSCDetId.h
+				// ConvertedHit values defined in interface/EmulatorClasses.h
+				tempStub.set_endcap    ( ( A->TP().detId<CSCDetId>().endcap() == 1 ) ? 1 : -1 );
+				tempStub.set_station   ( A->TP().detId<CSCDetId>().station()       );
+				tempStub.set_ring      ( A->TP().detId<CSCDetId>().ring()          );
+				tempStub.set_sector    ( A->TP().detId<CSCDetId>().triggerSector() ); // Using the +/- 1-6 convention, rather than 0-11, for now
+				tempStub.set_chamber   ( A->TP().detId<CSCDetId>().chamber()       );
+				tempStub.set_layer     ( A->TP().detId<CSCDetId>().layer()         );
+				tempStub.set_csc_ID    ( A->TP().getCSCData().cscID                );
+				tempStub.set_mpc_link  ( A->TP().getCSCData().mpclink              );
+				tempStub.set_wire      ( A->TP().getCSCData().keywire              );
+				tempStub.set_strip     ( A->TP().getCSCData().strip                );
+				tempStub.set_track_num ( A->TP().getCSCData().trknmb               );
+				tempStub.set_phi_local ( (A->Phi() / 60) - 2                       ); // The "phi_full" conversion. Right? - AWB 13.02.16
+				tempStub.set_phi_global( tempStub.Phi_local() + 60 * (tempStub.Sector() - 1) ); // Only holds using 1-6 sector convention
+				tempStub.set_theta_loc ( A->Theta()                                ); // This is some bizzare local definition of theta
+				tempStub.set_theta_deg ( (tempStub.Endcap() == 1)  * ( (A->Theta() * 0.2851562) + 8.5) + // This is the true global theta in degrees
+							(tempStub.Endcap() == -1) * (180 - ( (A->Theta() * 0.2851562) + 8.5) ) ); 
+				tempStub.set_theta_rad ( tempStub.Theta_deg() * (pi/180)           ); // This is the true global theta in radians
+				tempStub.set_eta       ( -1 * log( tan( tempStub.Theta_rad()/2 ) ) );
+				tempStub.set_quality   ( A->TP().getCSCData().quality              );
+				tempStub.set_pattern   ( A->TP().getCSCData().pattern              );
+				tempStub.set_bend      ( A->TP().getCSCData().bend                 );
+				tempStub.set_valid     ( A->TP().getCSCData().valid                );
+				tempStub.set_sync_err  ( A->TP().getCSCData().syncErr              );
+				tempStub.set_bx0       ( A->TP().getCSCData().bx0                  );
+				tempStub.set_bx        ( A->TP().getCSCData().bx                   );
+
+				if (tempTrackNew.NumCSCPrimitives() == 0) {
+				  tempTrackNew.set_endcap( tempStub.Endcap() );
+				  tempTrackNew.set_sector( tempStub.Sector() ); // Using the +/- 1-6 convention, rather than 0-11, for now
+				  if (tempStub.Endcap() == -1) {
+				    tempTrackNew.set_theta_deg( 180 - tempTrackNew.Theta_deg() ); // This is the true global theta in degrees
+				    tempTrackNew.set_theta_rad( pi  - tempTrackNew.Theta_rad() ); // This is the true global theta in radians
+				    tempTrackNew.set_eta      ( -1  * tempTrackNew.Eta()       );
+				  }
+				}
+
+				tempTrackNew.push_CSCPrimitive ( tempStub );
 
 				switch(station){
 					case 1: mode |= 8;break;
@@ -312,31 +371,40 @@ for(int SectIndex=0;SectIndex<12;SectIndex++){//perform TF on all 12 sectors
 
 			}
 
-		}
+		} // End loop for(std::vector<ConvertedHit>::iterator A = FourBest[fbest].AHits.begin();A != FourBest[fbest].AHits.end();A++)
 		tempTrack.phis = ps;
 		tempTrack.thetas = ts;
+		tempTrackNew.set_phis(ps); 
+		tempTrackNew.set_thetas(ts); 
 
 		float xmlpt = CalculatePt(tempTrack,es);
 		tempTrack.pt = xmlpt*1.4;
-		//FoundTracks->push_back(tempTrack);
+		tempTrackNew.set_pt(xmlpt*1.4); // Is this the "right" pT Defined how? - AWB 13.02.16
 
 		CombAddress = (me2address<<4) | me1address;
 
-
+		// Why do we send the local theta value to MakeRegionalCand?  Is xmlpt or 1.4*xmlpt the "accurate" value? - AWB 13.02.16
 		l1t::RegionalMuonCand outCand = MakeRegionalCand(xmlpt*1.4,FourBest[fbest].phi,FourBest[fbest].theta,
 														         CombAddress,mode,1,sector);
+		tempTrackNew.set_mode  ( mode );
+		// tempTrackNew.set_sector( sector );  // Commented b/c we're using the +/- 1-6 convention (above), rather than 0-11, for now
+		tempTrackNew.set_phi_global ( tempTrackNew.Phi_local() + 60 * (tempTrackNew.Sector() - 1) );
+
+		// FoundTracks->push_back(tempTrack);
+		FoundTracksNew->push_back(tempTrackNew);
+
         // NOTE: assuming that all candidates come from the central BX:
         int bx = 0;
-		float theta_angle = (FourBest[fbest].theta*0.2851562 + 8.5)*(3.14159265359/180);
+		float theta_angle = (FourBest[fbest].theta*0.2851562 + 8.5)*(pi/180);
 		float eta = (-1)*log(tan(theta_angle/2));
 		if(!ME13 && fabs(eta) > 1.1)
 			OutputCands->push_back(bx, outCand);
-	}
-  }
+	} // End if(FourBest[fbest].phi)
+  } // End for(int fbest=0;fbest<4;fbest++)
 
-
-//ev.put( FoundTracks, "DataITC");
 ev.put( OutputCands, "EMTF");
+// ev.put( FoundTracks, "EMTF");
+ev.put( FoundTracksNew, "EMTF");
   //std::cout<<"End Upgraded Track Finder Prducer:::::::::::::::::::::::::::\n:::::::::::::::::::::::::::::::::::::::::::::::::\n\n";
 
 }//analyzer
