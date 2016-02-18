@@ -89,6 +89,7 @@ public:
 private:
 
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
+  /* std::unique_ptr<GeometryTranslator> geom; */
   
 };
 

@@ -36,17 +36,16 @@ namespace l1t {
       
     InternalTrack() :
       endcap(-99), sector(-99), type(-99), mode(-99), rank(-99), 
-	pt(-99), theta_loc(-99), theta_deg(-99), theta_rad(-99), eta(-99), phi_local(-99), phi_global(-99), numCSCPrimitives(0)
+	pt(-99), pt_int(-99), theta_loc(-99), theta_deg(-99), theta_rad(-99), eta(-99), 
+	phi_local_deg(-99), phi_local_rad(-99), phi_global_deg(-99), phi_global_rad(-99), 
+	numCSCPrimitives(0)
 	{};
       
       virtual ~InternalTrack() {};
 
       void push_CSCPrimitive(CSCPrimitive bits)  { _CSCPrimitiveCollection.push_back(bits); numCSCPrimitives += 1; };
-
-      int NumCSCPrimitives()  { return numCSCPrimitives; };
-
-      CSCPrimitiveCollection GetCSCPrimitiveCollection()  { return _CSCPrimitiveCollection; };
-
+      const int NumCSCPrimitives()  const { return numCSCPrimitives; };
+      const CSCPrimitiveCollection GetCSCPrimitiveCollection()  const { return _CSCPrimitiveCollection; };
 
       enum subsystem_offset{ kRPCb, kCSC, kRPCf };
 
@@ -68,31 +67,37 @@ namespace l1t {
       void set_phis   (std::vector<int>                _phis)   { phis   = _phis; }
       void set_thetas (std::vector<int>                _thetas) { thetas = _thetas; }
             
-      void set_endcap    (int           bits) { endcap    = bits; };
-      void set_sector    (int           bits) { sector    = bits; };
-      void set_type      (unsigned      bits) { type      = bits; };
-      void set_mode      (unsigned long bits) { mode      = bits; };
-      void set_rank      (int           bits) { rank      = bits; };
-      void set_pt        (float         val ) { pt        = val;  };
-      void set_theta_loc (float         val ) { theta_loc = val;  };
-      void set_theta_deg (float         val ) { theta_deg = val;  };
-      void set_theta_rad (float         val ) { theta_rad = val;  };
-      void set_eta       (float         val ) { eta       = val;  };
-      void set_phi_local (float         val ) { phi_local = val;  };
-      void set_phi_global(float         val ) { phi_global= val;  };
+      void set_endcap         (int           bits) { endcap         = bits; };
+      void set_sector         (int           bits) { sector         = bits; };
+      void set_type           (unsigned      bits) { type           = bits; };
+      void set_mode           (unsigned long bits) { mode           = bits; };
+      void set_rank           (int           bits) { rank           = bits; };
+      void set_pt             (float         val ) { pt             = val;  };
+      void set_pt_int         (int           bits) { pt_int         = bits; };
+      void set_theta_loc      (float         val ) { theta_loc      = val;  };
+      void set_theta_deg      (float         val ) { theta_deg      = val;  };
+      void set_theta_rad      (float         val ) { theta_rad      = val;  };
+      void set_eta            (float         val ) { eta            = val;  };
+      void set_phi_local_deg  (float         val ) { phi_local_deg  = val;  };
+      void set_phi_local_rad  (float         val ) { phi_local_rad  = val;  };
+      void set_phi_global_deg (float         val ) { phi_global_deg = val;  };
+      void set_phi_global_rad (float         val ) { phi_global_rad = val;  };
       
-      const int           Endcap()     { return  endcap;    };
-      const int           Sector()     { return  sector;    };
-      const unsigned      Type()       { return  type;      };
-      const unsigned long Mode()       { return  mode;      };
-      const int           Rank()       { return  rank;      };
-      const float         Pt()         { return  pt;        };
-      const float         Theta_loc()  { return  theta_loc; };
-      const float         Theta_deg()  { return  theta_deg; };
-      const float         Theta_rad()  { return  theta_rad; };
-      const float         Eta()        { return  eta;       };
-      const float         Phi_local()  { return  phi_local; };
-      const float         Phi_global() { return  phi_global;};
+      const int           Endcap()          const { return  endcap;         };
+      const int           Sector()          const { return  sector;         };
+      const unsigned      Type()            const { return  type;           };
+      const unsigned long Mode()            const { return  mode;           };
+      const int           Rank()            const { return  rank;           };
+      const float         Pt()              const { return  pt;             };
+      const int           Pt_int()          const { return  pt_int;         };
+      const float         Theta_loc()       const { return  theta_loc;      };
+      const float         Theta_deg()       const { return  theta_deg;      };
+      const float         Theta_rad()       const { return  theta_rad;      };
+      const float         Eta()             const { return  eta;            };
+      const float         Phi_local_deg()   const { return  phi_local_deg;  };
+      const float         Phi_local_rad()   const { return  phi_local_rad;  };
+      const float         Phi_global_deg()  const { return  phi_global_deg; };
+      const float         Phi_global_rad()  const { return  phi_global_rad; };
       
       
     private:
@@ -114,12 +119,15 @@ namespace l1t {
       unsigned long mode; 
       int           rank;
       float         pt;
+      int           pt_int;
       float         theta_loc; // This is some bizzare local definition of theta
       float         theta_deg; // This is the true global theta in degrees
       float         theta_rad; // This is the true global theta in radians
       float         eta;
-      float         phi_local;
-      float         phi_global;
+      float         phi_local_deg;
+      float         phi_local_rad;
+      float         phi_global_deg;
+      float         phi_global_rad;
       int           numCSCPrimitives;
 
     }; // End of class InternalTrack
