@@ -205,57 +205,43 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 
   }
 
- ////////////////////////////////////
- /// Sorting through all sectors ////
- ///   to find 4 best muons      ////
- ////////////////////////////////////
+ ///////////////////////////////////////
+ /// Collect Muons from all sectors ////
+ ///////////////////////////////////////
 
-
- BTrack FourBest[4];//ok
  std::vector<BTrack> PTemp[NUM_SECTORS];
+ std::vector<BTrack> AllTracks;
  for (int i=0; i<NUM_SECTORS; i++) PTemp[i] = PTracks[i];
 
- int windex[4] = {-1,-1,-1,-1};
-
-
-
- for(int i=0;i<4;i++){
 
  	for(int j=0;j<36;j++){
 
 
-			if(!PTemp[j/3][j%3].phi)//no track
-				continue;
+			if(PTemp[j/3][j%3].phi)//no track
+				AllTracks.push_back(PTemp[j/3][j%3]);
 
-			if((windex[0] == j) || (windex[1] == j) || (windex[2] == j) || (windex[3] == j))//already picked
-				continue;
-
-			if(PTracks[j/3][j%3].winner.Rank() > FourBest[i].winner.Rank()){
-
-				FourBest[i] = PTemp[j/3][j%3];
-				windex[i] = j;
-
-			}
+		
 
  	}
-}
 
   ///////////////////////////////////
   /// Make Internal track if ////////
   /////// tracks are found //////////
-  ///////////////////////////////////
+  /////////////////////////////////// 
+  
+  std::vector<l1t::RegionalMuonCand> holder,tester1;
 
-  for(int fbest=0;fbest<4;fbest++){
+  for(unsigned int fbest=0;fbest<AllTracks.size();fbest++){
 
-  	if(FourBest[fbest].phi){
+  	if(AllTracks[fbest].phi){
 
 
 		InternalTrack tempTrack;
   		tempTrack.setType(2);
-		tempTrack.phi = FourBest[fbest].phi;
-		tempTrack.theta = FourBest[fbest].theta;
-		tempTrack.rank = FourBest[fbest].winner.Rank();
-		tempTrack.deltas = FourBest[fbest].deltas;
+		tempTrack.phi = AllTracks[fbest].phi;
+		tempTrack.theta = AllTracks[fbest].theta;
+		tempTrack.rank = AllTracks[fbest].winner.Rank();
+		tempTrack.deltas = AllTracks[fbest].deltas;
 		std::vector<int> ps, ts;
 
 
@@ -263,7 +249,7 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		bool ME13 = false;
 		int me1address = 0, me2address = 0, CombAddress = 0, mode = 0;
 
-		for(std::vector<ConvertedHit>::iterator A = FourBest[fbest].AHits.begin();A != FourBest[fbest].AHits.end();A++){
+		for(std::vector<ConvertedHit>::iterator A = AllTracks[fbest].AHits.begin();A != AllTracks[fbest].AHits.end();A++){
 
 			if(A->Phi() != -999){
 
@@ -326,17 +312,34 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		CombAddress = (me2address<<4) | me1address;
 
 
-		l1t::RegionalMuonCand outCand = MakeRegionalCand(xmlpt*1.4,FourBest[fbest].phi,FourBest[fbest].theta,
+		l1t::RegionalMuonCand outCand = MakeRegionalCand(xmlpt*1.4,AllTracks[fbest].phi,AllTracks[fbest].theta,
 														         CombAddress,mode,1,sector);
         // NOTE: assuming that all candidates come from the central BX:
-        int bx = 0;
-		float theta_angle = (FourBest[fbest].theta*0.2851562 + 8.5)*(3.14159265359/180);
+        //int bx = 0;
+		float theta_angle = (AllTracks[fbest].theta*0.2851562 + 8.5)*(3.14159265359/180);
 		float eta = (-1)*log(tan(theta_angle/2));
+		
 		if(!ME13 && fabs(eta) > 1.1)
-			OutputCands->push_back(bx, outCand);
+			holder.push_back(outCand);
+			//OutputCands->push_back(bx, outCand);
 	}
   }
 
+
+for(unsigned int h=0;h<holder.size();h++){
+
+	int bx = 0;
+	int sector = holder[h].processor();
+	if(holder[h].trackFinderType() == 3)
+		sector += 6;
+
+	for(int sect=0;sect<12;sect++){
+	
+		if(sector == sect)
+			OutputCands->push_back(bx,holder[h]);
+		
+	}
+}
 
 //ev.put( FoundTracks, "DataITC");
 ev.put( OutputCands, "EMTF");
