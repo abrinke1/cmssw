@@ -35,7 +35,7 @@ namespace l1t {
     public:
       
     InternalTrack() :
-      endcap(-99), sector(-99), type(-99), mode(-99), rank(-99), 
+      endcap(-99), sector(-99), type(-99), mode(-99), rank(-99), straightness(-99), bx(-99), 
 	pt(-99), pt_int(-99), theta_loc(-99), theta_deg(-99), theta_rad(-99), eta(-99), 
 	phi_local_deg(-99), phi_local_rad(-99), phi_global_deg(-99), phi_global_rad(-99), 
 	numCSCPrimitives(0)
@@ -72,6 +72,8 @@ namespace l1t {
       void set_type           (unsigned      bits) { type           = bits; };
       void set_mode           (unsigned long bits) { mode           = bits; };
       void set_rank           (int           bits) { rank           = bits; };
+      void set_straightness   (int           bits) { straightness   = bits; };
+      void set_bx             (int           bits) { bx             = bits; };
       void set_pt             (float         val ) { pt             = val;  };
       void set_pt_int         (int           bits) { pt_int         = bits; };
       void set_theta_loc      (float         val ) { theta_loc      = val;  };
@@ -88,6 +90,8 @@ namespace l1t {
       const unsigned      Type()            const { return  type;           };
       const unsigned long Mode()            const { return  mode;           };
       const int           Rank()            const { return  rank;           };
+      const int           Straightness()    const { return  straightness;   };
+      const int           BX()              const { return  bx;             };
       const float         Pt()              const { return  pt;             };
       const int           Pt_int()          const { return  pt_int;         };
       const float         Theta_loc()       const { return  theta_loc;      };
@@ -118,6 +122,8 @@ namespace l1t {
       unsigned      type; 
       unsigned long mode; 
       int           rank;
+      int           straightness;
+      int           bx;
       float         pt;
       int           pt_int;
       float         theta_loc; // This is some bizzare local definition of theta

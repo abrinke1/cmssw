@@ -34,6 +34,10 @@ std::vector<ConvertedHit> PrimConv(std::vector<TriggerPrimitive> TriggPrim, int 
 	int station = Det.station(), chamber = Det.chamber(), ring = Det.ring(), wire = C3.getCSCData().keywire, sector = Det.triggerSector(), strip = C3.getCSCData().strip; 
 	int pattern = C3.getPattern(), Id = C3.Id(), quality = C3.getCSCData().quality, BX = C3.getCSCData().bx, endcap = Det.endcap();
 	
+	// Critical fix from Matt Carver - AWB 22.02.16
+	if(station == 1 && ring == 1 && strip > 127)
+	  ring = 4;
+
 	if(ring == 4){Id += 9;}
 
 	//if(endcap == 1 && sector == 1)//
@@ -158,7 +162,8 @@ std::vector<ConvertedHit> PrimConv(std::vector<TriggerPrimitive> TriggPrim, int 
 	
 		eightstrip = (eightstrip>>1);
 		patcor = (patcor>>1);
-		//if(ring == 4) eightstrip -= 512;
+		// Critical fix from Matt Carver - AWB 22.02.16
+		if(ring == 4 && strip > 127) eightstrip -= 512;
 	}	
 	
 	if(clctpatsign) patcor = -patcor;
@@ -314,6 +319,9 @@ std::vector<ConvertedHit> PrimConv(std::vector<TriggerPrimitive> TriggPrim, int 
 	
 	ConvertedHit Hit;
 
+	// void SetValues(int phi,int theta,int ph_hit,int phzvl,int station,int sub,int id,int quality,int pattern,int wire,int strip,int BX)
+	/* std::cout << "phi = " << fph << ", ph_hit = " << ph_hit << ", phzvl = " << phzvl << ", station = " << station  */
+	/* 	  << ", chamber = " << chamber << ", ring = " << ring << ", sector = " << sector << ", subsector = " << sub << ", endcap = " << endcap << std::endl; */
 	Hit.SetValues(fph,th,ph_hit,phzvl,station,sub,Id,quality,pattern,wire,strip,BX);
 	Hit.SetTP(C3);
 	Hit.SetZhit(zhit);

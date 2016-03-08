@@ -32,7 +32,6 @@
 
 #include "DataFormats/L1TMuon/interface/EMTF/InternalTrack.h"
 
-
 // Can we move out of the L1TMuon namespace? Should we? - AWB 15.02.16
 using namespace L1TMuon;
 
@@ -49,9 +48,9 @@ L1TMuonEndCapTrackProducer::L1TMuonEndCapTrackProducer(const PSet& p) {
   // produces< L1TMuon::InternalTrackCollection >("EMTF");
   produces< l1t::emtf::InternalTrackCollection >("EMTF");
   
-  // // To set the phi and eta values of the LCTs
-  // // Following the example of plugins/deprecate/L1TMuonTriggerPrimitiveProducer.cc
-  // geom.reset(new GeometryTranslator());
+  // To set the phi and eta values of the LCTs
+  // Following the example of plugins/deprecate/L1TMuonTriggerPrimitiveProducer.cc
+  geom.reset(new GeometryTranslator());
 }
 
 
@@ -59,7 +58,8 @@ L1TMuonEndCapTrackProducer::L1TMuonEndCapTrackProducer(const PSet& p) {
 void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 					 const edm::EventSetup& es) {
 
-  // geom->checkAndUpdateGeometry(es);
+  // es.get<MuonGeometryRecord>().get(cscGeom);
+  geom->checkAndUpdateGeometry(es);
   
   // Should implement proper error-checking, with options in python cfg file - AWB 15.02.16
   // bool verbose = false;
@@ -117,8 +117,6 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
   // (CSCDetId, CSCCorrelatedLCTDigi)? - AWB 15.02.16
   for (auto chamber = MDC->begin(); chamber != MDC->end(); ++chamber) {
     for (auto digi = (*chamber).second.first; digi != (*chamber).second.second; ++digi) {
-      // std::cout << "Trigger Primitive phi = " << geom->calculateGlobalPhi( TriggerPrimitive((*chamber).first, *digi) ) << std::endl;
-      // std::cout << "Trigger Primitive eta = " << geom->calculateGlobalEta( TriggerPrimitive((*chamber).first, *digi) ) << std::endl;
       out.push_back( TriggerPrimitive((*chamber).first, *digi) );
     }
   }
@@ -312,6 +310,18 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       tempTrackNew.set_theta_rad     (  tempTrackNew.Theta_deg() * (pi/180)        ); // This is the true global |theta| in radians; set to theta later
       tempTrackNew.set_eta           ( -1 * log( tan( tempTrackNew.Theta_rad()/2 ) ) ); // This is the global |eta|; set to eta later
       tempTrackNew.set_rank          (  AllBest[all_best].winner.Rank() );
+
+      int tempStraightness = 0;
+      int tempRank = tempTrackNew.Rank();
+      if(tempRank & 64)
+	tempStraightness |= 4;
+      if(tempRank & 16)
+	tempStraightness |= 2;
+      if(tempRank & 4)
+	tempStraightness |= 1;
+
+      tempTrackNew.set_straightness ( tempStraightness );
+
       // Can't have a vector of vectors of vectors in ROOT files
       // tempTrackNew.set_deltas(AllBest[all_best].deltas);
       
@@ -321,10 +331,12 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       bool ME13 = false;
       int me1address = 0, me2address = 0, CombAddress = 0, mode = 0;
       
+      int first_lct_bx = -99;
+      int second_lct_bx = -99;
       for (std::vector<ConvertedHit>::iterator A = AllBest[all_best].AHits.begin(); A != AllBest[all_best].AHits.end(); A++) {
 	
 	l1t::emtf::CSCPrimitive tempStub;
-	
+
 	if (A->Phi() != -999) {
 	  
 	  int station = A->TP().detId<CSCDetId>().station();
@@ -336,7 +348,9 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 	  ps.push_back(A->Phi());
 	  ts.push_back(A->Theta());
 	  sector = (A->TP().detId<CSCDetId>().endcap() -1)*6 + A->TP().detId<CSCDetId>().triggerSector() - 1;
-	  //std::cout<<"Q: "<<A->Quality()<<", keywire: "<<A->Wire()<<", strip: "<<A->Strip()<<std::endl;
+
+	  // std::cout << "In track " << all_best << ", station " << station << ", A->Theta() = " << A->Theta() << ", A->Phi() = " << A->Phi() << std::endl;
+	  // std::cout << "A->Quality() =  "<< A->Quality() <<", A->Wire() = "<< A->Wire() << ", A->Strip() = " << A->Strip() << std::endl;
 	  
 	  // CSCDetId variables defined in: 
 	  // https://github.com/cms-l1t-offline/cmssw/blob/l1t-muon-pass2-CMSSW_8_0_0_pre5/DataFormats/MuonDetId/interface/CSCDetId.h
@@ -370,7 +384,70 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 	  tempStub.set_valid         ( A->TP().getCSCData().valid                );
 	  tempStub.set_sync_err      ( A->TP().getCSCData().syncErr              );
 	  tempStub.set_bx0           ( A->TP().getCSCData().bx0                  );
-	  tempStub.set_bx            ( A->TP().getCSCData().bx                   );
+	  tempStub.set_bx            ( A->TP().getCSCData().bx - 6               ); // Offset so center BX is at 0
+	  if (tempStub.BX() >= 725444449) {
+	    std::cout << "Why does tempStub.BX() == " << tempStub.BX() << " ?  Resetting to -99." << std::endl;
+	    tempStub.set_bx(-99);
+	  }
+	  
+	  if ( tempStub.BX() >= first_lct_bx ) {
+	    second_lct_bx = first_lct_bx;
+	    first_lct_bx = tempStub.BX();
+	  }
+
+	  if ( tempStub.Quality() != A->Quality() )
+	    std::cout << "A->TP().getCSCData().quality == " <<  A->TP().getCSCData().quality << " but A->Quality() == " << A->Quality() << std::endl;
+	  if ( A->TP().getCSCData().pattern != A->Pattern() )
+	    std::cout << "A->TP().getCSCData().pattern == " << A->TP().getCSCData().pattern << " but A->Pattern() == " << A->Pattern() << std::endl;
+
+
+	  // if ( ev.id().event() == 205987364 ||
+	  //      ev.id().event() == 208080931 ||
+	  //      ev.id().event() == 207364106 ||
+	  //      ev.id().event() == 208851566 ||
+	  //      ev.id().event() == 208568537 ||
+	  //      ev.id().event() == 210559179 ||
+	  //      ev.id().event() == 209911185 ||
+	  //      ev.id().event() == 357576086 ||
+	  //      ev.id().event() == 370173370 ||
+	  //      ev.id().event() == 433124505 ||
+	  //      ev.id().event() == 445076529 ||
+	  //      ev.id().event() == 451674044 ||
+	  //      ev.id().event() == 463482814 ||
+	  //      ev.id().event() == 469847518 )
+
+      // 	  TriggerPrimitive tempPrim = A->TP();
+      // 	  CSCDetId tempDetId = tempPrim.detId<CSCDetId>();
+      // 	  // if (tempDetId.station() == 1 && tempDetId.ring() == 1 && tempPrim.getCSCData().strip > 127) {
+      // 	    // Set ring to 4
+      // 	    tempDetId = CSCDetId( tempDetId.endcap(), tempDetId.station(), 4, tempDetId.chamber(), tempDetId.layer() );
+      // 	    // const CSCLayer* tempLayer = cscGeom->layer( tempDetId );
+      // 	    // GlobalPoint tempGPstrip = tempLayer->centerOfStrip( tempPrim.getCSCData().strip );
+      // 	    GlobalPoint tempGPstrip = cscGeom->layer( tempDetId )->centerOfStrip( tempPrim.getCSCData().strip );
+      // 	    // GlobalPoint tempGPwire = tempLayer->centerOfWireGroup( tempStub.Wire() );
+
+      // 	    std::cout << tempGPstrip.eta() << std::endl;
+      // 	    // std::cout << tempGPwire.phi() << std::endl;
+      // 	    // // How do we access the CSCCorrelatedLCTDigi from A->TP()?
+      // 	    // tempPrim = TriggerPrimitive(tempDetId, CSCCorrelatedLCTDigi);
+      // 	    // }
+	    
+      	  tempStub.set_phi_geom_rad ( geom->calculateGlobalPhi(A->TP()) );
+
+      // 	  // // tempStub.set_phi_geom_rad ( geom->calculateGlobalPhi(tempPrim) );
+	  
+      // 	  // // if ( abs(tempStub.Phi_global_rad() - tempStub.Phi_geom_rad()) > 0.05 && abs(tempStub.Phi_global_rad()) < 3.1 ) {
+      // 	  //   std::cout << "In event " << ev.id().event() << ", Emu phi = " << tempStub.Phi_global_rad() << 
+      // 	  //     ", new Geom phi = " << tempGPstrip.phi() << " / " << tempGPwire.phi() << ", and old Geom phi = " << tempStub.Phi_geom_rad() << std::endl;
+      // 	  //   std::cout << "Emu eta = " << tempStub.Eta() << ", new Geom eta = " << tempGPstrip.eta() << " / " << tempGPwire.eta() << std::endl;
+      // 	  //   std::cout << "Endcap " << tempStub.Endcap() << ", station " << tempStub.Station() << ", ring " << tempStub.Ring() << ", sector " << tempStub.Sector() << std::endl;
+      // 	  //   std::cout << "Chamber " << tempStub.Chamber() << ", layer " << tempStub.Layer() << ", wire " << tempStub.Wire() << ", strip " << tempStub.Strip() << std::endl;
+      // 	  //   // std::cout << "tempPrim.detId<CSCDetId>().ring() == " << tempPrim.detId<CSCDetId>().ring() << std::endl;
+      // 	  //   // }	      
+
+      // // std::cout << "Trigger Primitive phi = " << geom->calculateGlobalPhi( TriggerPrimitive((*chamber).first, *digi) ) << std::endl;
+      // // std::cout << "Trigger Primitive eta = " << geom->calculateGlobalEta( TriggerPrimitive((*chamber).first, *digi) ) << std::endl;
+
 	  
 	  if (tempTrackNew.NumCSCPrimitives() == 0) {
 	    tempTrackNew.set_endcap( tempStub.Endcap() );
@@ -391,7 +468,7 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 	  case 4: mode |= 1; break;
 	  default: mode |= 0;
 	  }
-	  
+
 	  if (A->TP().detId<CSCDetId>().station() == 1 && A->TP().detId<CSCDetId>().ring() == 3)
 	    ME13 = true;
 	  
@@ -432,7 +509,10 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       // Why do we send the local theta value to MakeRegionalCand?  Is xmlpt or 1.4*xmlpt the "accurate" value? - AWB 13.02.16
       l1t::RegionalMuonCand outCand = MakeRegionalCand(xmlpt*1.4,AllBest[all_best].phi,AllBest[all_best].theta,
 						       CombAddress,mode,1,sector);
+      // std::cout << "mode =  " << mode << std::endl;
       tempTrackNew.set_mode  ( mode );
+
+      tempTrackNew.set_bx ( (second_lct_bx > -99) ? second_lct_bx : first_lct_bx );
       // tempTrackNew.set_sector( sector );  // Commented b/c we're using the +/- 1-6 convention (above), rather than 0-11, for now
       tempTrackNew.set_phi_global_deg ( tempTrackNew.Phi_local_deg() + 60 * (tempTrackNew.Sector() - 1) );
       // Correct for 15 deg. offset, set range to -180 to 180

@@ -21,7 +21,7 @@ namespace l1t {
 
       endcap(-99), station(-99), ring(-99), sector(-99), chamber(-99), layer(-99),
 	csc_ID(-99), mpc_link(-99), wire(-99), strip(-99), track_num(-99), 
-	phi_local_deg(-99), phi_local_rad(-99), phi_global_deg(-99), phi_global_rad(-99),
+	phi_local_deg(-99), phi_local_rad(-99), phi_global_deg(-99), phi_global_rad(-99), phi_geom_rad(-99),
 	theta_loc(-99), theta_deg(-99), theta_rad(-99), eta(-99), 
 	quality(-99), pattern(-99), bend(-99), 
 	valid(-99), sync_err(-99), bx0(-99), bx(-99) 
@@ -44,6 +44,7 @@ namespace l1t {
       void set_phi_local_rad  (float val) { phi_local_rad  = val; };
       void set_phi_global_deg (float val) { phi_global_deg = val; };
       void set_phi_global_rad (float val) { phi_global_rad = val; };
+      void set_phi_geom_rad   (float val) { phi_geom_rad   = val; };
       void set_theta_loc      (float val) { theta_loc      = val; };
       void set_theta_deg      (float val) { theta_deg      = val; };
       void set_theta_rad      (float val) { theta_rad      = val; };
@@ -71,6 +72,7 @@ namespace l1t {
       const float Phi_local_rad  ()  const { return phi_local_rad;  };
       const float Phi_global_deg ()  const { return phi_global_deg; };
       const float Phi_global_rad ()  const { return phi_global_rad; };
+      const float Phi_geom_rad   ()  const { return phi_geom_rad;   };
       const float Theta_loc      ()  const { return theta_loc;      };
       const float Theta_deg      ()  const { return theta_deg;      };
       const float Theta_rad      ()  const { return theta_rad;      };
@@ -103,6 +105,7 @@ namespace l1t {
       float phi_local_rad;
       float phi_global_deg;
       float phi_global_rad;
+      float phi_geom_rad; // The global phi value returned by L1Trigger/L1TMuon/interface/deprecate/GeometryTranslator.h
       float theta_loc; // This is some bizzare local definition of theta
       float theta_deg; // This is the true global theta in degrees
       float theta_rad; // This is the true global theta in radians
