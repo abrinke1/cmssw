@@ -5,8 +5,8 @@ import FWCore.ParameterSet.Config as cms
 process = cms.Process("EMTF")
 process.load("FWCore.MessageLogger.MessageLogger_cfi")
 
-process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(-1))
-process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(1000)
+process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(10000))
+process.MessageLogger.cerr.FwkReport.reportEvery = cms.untracked.int32(100)
 process.options = cms.untracked.PSet(wantSummary = cms.untracked.bool(True))
 
 infiles = [
@@ -31,20 +31,23 @@ infiles = [
     # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/A4367789-46E7-E511-9376-02163E014176.root',
     # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/681/00000/A674A9F6-7DE9-E511-81C7-02163E0144A2.root',
 
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/A4367789-46E7-E511-9376-02163E014176.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/A840D46E-55E7-E511-A549-02163E011939.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/A89B6F73-55E7-E511-9C18-02163E01381F.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/B0CDFC69-4CE7-E511-9BB1-02163E011F3E.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/B2FB6B80-4BE7-E511-9AA6-02163E012236.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/B8AE537C-54E7-E511-9E62-02163E01396A.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/B8C6436E-4BE7-E511-AD9F-02163E011FCE.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/BA765DA3-45E7-E511-A29E-02163E01381F.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/BAC60444-49E7-E511-A2CB-02163E01381F.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/BCA322C2-50E7-E511-89EC-02163E011939.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/C477D6A6-4AE7-E511-AFAE-02163E011FCE.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/C682A47E-47E7-E511-AF01-02163E0134CD.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/C85F11A8-4AE7-E511-B380-02163E01381F.root',
-    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/CC92A82C-4DE7-E511-97D7-02163E013613.root',
+    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/268/733/00000/5669AE2E-CAFC-E511-9402-02163E01452B.root',
+    'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/268/733/00000/A459B232-CAFC-E511-B119-02163E011856.root',
+
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/A4367789-46E7-E511-9376-02163E014176.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/A840D46E-55E7-E511-A549-02163E011939.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/A89B6F73-55E7-E511-9C18-02163E01381F.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/B0CDFC69-4CE7-E511-9BB1-02163E011F3E.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/B2FB6B80-4BE7-E511-9AA6-02163E012236.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/B8AE537C-54E7-E511-9E62-02163E01396A.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/B8C6436E-4BE7-E511-AD9F-02163E011FCE.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/BA765DA3-45E7-E511-A29E-02163E01381F.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/BAC60444-49E7-E511-A2CB-02163E01381F.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/BCA322C2-50E7-E511-89EC-02163E011939.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/C477D6A6-4AE7-E511-AFAE-02163E011FCE.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/C682A47E-47E7-E511-AF01-02163E0134CD.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/C85F11A8-4AE7-E511-B380-02163E01381F.root',
+    # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/266/537/00000/CC92A82C-4DE7-E511-97D7-02163E013613.root',
 
     # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/264/593/00000/002BAC1F-EBD1-E511-A705-02163E0144B7.root',
     # 'root://eoscms//store/express/Commissioning2016/ExpressCosmics/FEVT/Express-v1/000/264/593/00000/004B8353-10D2-E511-B539-02163E0136DC.root',
@@ -82,6 +85,7 @@ process.GlobalTag = GlobalTag(process.GlobalTag, 'auto:run2_mc', '')
 #     "MessageLogger",
 #     threshold  = cms.untracked.string('DEBUG'),
 #     categories = cms.untracked.vstring('L1T'),
+#     ## categories = cms.untracked.vstring('EMTF'),
 #     debugModules = cms.untracked.vstring('*'),
 #     )
 
