@@ -11,11 +11,15 @@ namespace l1t {
     // calculateCSCGlobalSector(detid,_globalsector,_subsector);
 
     // Based on L1Trigger/L1TMuonEndCap/interface/PrimitiveConverter.h
-    set_endcap  ( _detId.endcap()        );
+    set_endcap  ( (_detId.endcap() == 2) ? -1 : _detId.endcap() ); // Convert from {+,-} = {1,2} to {1,-1}
     set_station ( _detId.station()       );
     set_sector  ( _detId.triggerSector() );
     set_ring    ( _detId.ring()          );
     set_chamber ( _detId.chamber()       );
+
+    set_sector_GMT ( calc_sector_GMT( Endcap(), Sector() ) );
+    set_is_CSC_hit ( true  );
+    set_is_RPC_hit ( false );
 
   } // End EMTFHit::ImportCSCDetId
 
@@ -37,6 +41,8 @@ namespace l1t {
     set_bx0       ( _digi.getBX0()     );
     set_sync_err  ( _digi.getSyncErr() );
     set_csc_ID    ( _digi.getCSCID()   );
+
+    set_subsector ( calc_subsector( Station(), Chamber() ) ); 
 
   } // End EMTFHit::ImportCSCCorrelatedLCTDigi
 

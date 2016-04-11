@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <boost/cstdint.hpp> 
+#include <cmath>
 
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h"
@@ -30,6 +31,8 @@ namespace l1t {
     
     virtual ~EMTFHit() {};
 
+    float pi = 3.141592653589793238;
+
     // Functions defined in src/EMTFHit.cc
     void ImportCSCDetId ( const CSCDetId& _detId);
     void ImportCSCCorrelatedLCTDigi ( const CSCCorrelatedLCTDigi& _digi);
@@ -37,8 +40,18 @@ namespace l1t {
     void SetZoneContribution (std::vector<int> vect_ints)  { zone_contribution = vect_ints; };
     void SetCSCDetId         (CSCDetId id)                 { csc_DetId         = id;        };
     
-    const std::vector<int> Zone_contribution () const { return zone_contribution; };
-    const CSCDetId CSC_DetId                 () const { return csc_DetId;         };
+    std::vector<int> Zone_contribution () const { return zone_contribution; };
+    CSCDetId CSC_DetId                 () const { return csc_DetId;         };
+
+    int calc_sector_GMT (int _endcap, int _sector) { return (_endcap == 1) ? _sector - 1 : _sector + 5; };
+    int calc_subsector  (int _station, int _chamber ) {                // Why does emulator have csc_ID dependence? - AWB 11.04.16
+      if ( _station == 1 ) return (( (_chamber-1) % 6 ) > 2) ? 1 : 2;  // if(station == 1 && id > 3 && id < 7) - AWB 11.04.16
+      else if ( _station < 0 || _chamber < 0 ) return -999;            // Also, is this correct for chambers 1 - 36, vs. 0 - 35? - AWB 11.04.16
+      else return 0; };                                                // Here, corrected by adding "-1" to "_chamber" - AWB 11.04.16
+    float calc_theta_deg (int _theta_int) { return _theta_int * 0.2851562 + 8.5; };
+    float calc_theta_rad (int _theta_int) { return (_theta_int * 0.2851562 + 8.5) * (pi / 180); };
+    float calc_eta     (float _theta_rad) { return -1 * log( tan( _theta_rad / 2 ) ); };
+
     
     void set_endcap         (int  bits) { endcap        = bits; };
     void set_station        (int  bits) { station       = bits; };
@@ -57,10 +70,10 @@ namespace l1t {
     void set_phi_hit        (int  bits) { phi_hit       = bits; };
     void set_phi_z_val      (int  bits) { phi_z_val     = bits; };
     void set_phi_loc_int    (int  bits) { phi_loc_int   = bits; };
-    void set_phi_loc_deg    (float val) { phi_loc_deg    = val; };
-    void set_phi_loc_rad    (float val) { phi_loc_rad    = val; };
-    void set_phi_glob_deg   (float val) { phi_glob_deg   = val; };
-    void set_phi_glob_rad   (float val) { phi_glob_rad   = val; };
+    void set_phi_loc_deg    (float val) { phi_loc_deg   = val;  };
+    void set_phi_loc_rad    (float val) { phi_loc_rad   = val;  };
+    void set_phi_glob_deg   (float val) { (val < 180) ? phi_glob_deg = val : phi_glob_deg = val - 360;  };
+    void set_phi_glob_rad   (float val) { (val < pi ) ? phi_glob_rad = val : phi_glob_rad = val - 2*pi; };
     void set_phi_geom_rad   (float val) { phi_geom_rad   = val; };
     void set_theta_int      (int  bits) { theta_int     = bits; };
     void set_theta_loc      (float val) { theta_loc      = val; };
@@ -77,85 +90,85 @@ namespace l1t {
     void set_is_CSC_hit     (bool expr) { is_CSC_hit    = expr; };
     void set_is_RPC_hit     (bool expr) { is_RPC_hit    = expr; };
 
-    const int   Endcap         ()  const { return endcap   ;      };
-    const int   Station        ()  const { return station  ;      };
-    const int   Ring           ()  const { return ring     ;      };
-    const int   Sector         ()  const { return sector   ;      };
-    const int   Sector_GMT     ()  const { return sector_GMT;     };
-    const int   Subsector      ()  const { return subsector;      };
-    const int   Chamber        ()  const { return chamber  ;      };
-    const int   Layer          ()  const { return layer    ;      };
-    const int   CSC_ID         ()  const { return csc_ID   ;      };
-    const int   MPC_link       ()  const { return mpc_link ;      };
-    const int   Wire           ()  const { return wire     ;      };
-    const int   Strip          ()  const { return strip    ;      };
-    const int   Zone_hit       ()  const { return zone_hit ;      };
-    const int   Track_num      ()  const { return track_num;      };
-    const int   Phi_hit        ()  const { return phi_hit;        };
-    const int   Phi_Z_val      ()  const { return phi_z_val;      };
-    const int   Phi_loc_int    ()  const { return phi_loc_int;    };
-    const float Phi_loc_deg    ()  const { return phi_loc_deg;    };
-    const float Phi_loc_rad    ()  const { return phi_loc_rad;    };
-    const float Phi_glob_deg   ()  const { return phi_glob_deg;   };
-    const float Phi_glob_rad   ()  const { return phi_glob_rad;   };
-    const float Phi_geom_rad   ()  const { return phi_geom_rad;   };
-    const int   Theta_int      ()  const { return theta_int;      };
-    const float Theta_loc      ()  const { return theta_loc;      };
-    const float Theta_deg      ()  const { return theta_deg;      };
-    const float Theta_rad      ()  const { return theta_rad;      };
-    const float Eta            ()  const { return eta      ;      };
-    const int   Quality        ()  const { return quality  ;      };
-    const int   Pattern        ()  const { return pattern  ;      };
-    const int   Bend           ()  const { return bend     ;      };
-    const int   Valid          ()  const { return valid    ;      };
-    const int   Sync_err       ()  const { return sync_err ;      };
-    const int   BX0            ()  const { return bx0      ;      };
-    const int   BX             ()  const { return bx       ;      };
-    const bool  Is_CSC_hit     ()  const { return is_CSC_hit;     };
-    const bool  Is_RPC_hit     ()  const { return is_RPC_hit;     };
+    int   Endcap         ()  const { return endcap   ;      };
+    int   Station        ()  const { return station  ;      };
+    int   Ring           ()  const { return ring     ;      };
+    int   Sector         ()  const { return sector   ;      };
+    int   Sector_GMT     ()  const { return sector_GMT;     };
+    int   Subsector      ()  const { return subsector;      };
+    int   Chamber        ()  const { return chamber  ;      };
+    int   Layer          ()  const { return layer    ;      };
+    int   CSC_ID         ()  const { return csc_ID   ;      };
+    int   MPC_link       ()  const { return mpc_link ;      };
+    int   Wire           ()  const { return wire     ;      };
+    int   Strip          ()  const { return strip    ;      };
+    int   Zone_hit       ()  const { return zone_hit ;      };
+    int   Track_num      ()  const { return track_num;      };
+    int   Phi_hit        ()  const { return phi_hit;        };
+    int   Phi_Z_val      ()  const { return phi_z_val;      };
+    int   Phi_loc_int    ()  const { return phi_loc_int;    };
+    float Phi_loc_deg    ()  const { return phi_loc_deg;    };
+    float Phi_loc_rad    ()  const { return phi_loc_rad;    };
+    float Phi_glob_deg   ()  const { return phi_glob_deg;   };
+    float Phi_glob_rad   ()  const { return phi_glob_rad;   };
+    float Phi_geom_rad   ()  const { return phi_geom_rad;   };
+    int   Theta_int      ()  const { return theta_int;      };
+    float Theta_loc      ()  const { return theta_loc;      };
+    float Theta_deg      ()  const { return theta_deg;      };
+    float Theta_rad      ()  const { return theta_rad;      };
+    float Eta            ()  const { return eta      ;      };
+    int   Quality        ()  const { return quality  ;      };
+    int   Pattern        ()  const { return pattern  ;      };
+    int   Bend           ()  const { return bend     ;      };
+    int   Valid          ()  const { return valid    ;      };
+    int   Sync_err       ()  const { return sync_err ;      };
+    int   BX0            ()  const { return bx0      ;      };
+    int   BX             ()  const { return bx       ;      };
+    bool  Is_CSC_hit     ()  const { return is_CSC_hit;     };
+    bool  Is_RPC_hit     ()  const { return is_RPC_hit;     };
 
 
   private:
     
-    std::vector<int> zone_contribution;
+    std::vector<int> zone_contribution; // Filled in emulator from ConvertedHit.ZoneContribution()
     CSCDetId csc_DetId;
     
-    int   endcap;
-    int   station;
-    int   ring;
-    int   sector;
-    int   sector_GMT;
-    int   subsector;
-    int   chamber;
-    int   layer;
-    int   csc_ID;
-    int   mpc_link;
-    int   wire;
-    int   strip;
-    int   zone_hit;
-    int   track_num;
-    int   phi_hit;
-    int   phi_z_val;
-    int   phi_loc_int;
-    float phi_loc_deg;
-    float phi_loc_rad;
-    float phi_glob_deg;
-    float phi_glob_rad;
-    float phi_geom_rad; // The global phi value returned by L1Trigger/L1TMuon/interface/deprecate/GeometryTranslator.h
-    int   theta_int;
-    float theta_loc; // This is some bizzare local definition of theta
-    float theta_deg; // This is the true global theta in degrees
-    float theta_rad; // This is the true global theta in radians
-    float eta;
-    int   quality;
-    int   pattern;
-    int   bend;
-    int   valid;
-    int   sync_err;
-    int   bx0;
-    int   bx;
-    bool  is_CSC_hit;
-    bool  is_RPC_hit;
+    int   endcap;       // -1 or 1.  Filled in EMTFHit.cc from CSCDetId, modified
+    int   station;      //  1 -  4.  Filled in EMTFHit.cc from CSCDetId
+    int   ring;         //  1 -  3.  Filled in EMTFHit.cc from CSCDetId
+    int   sector;       //  1 -  6.  Filled in EMTFHit.cc from CSCDetId
+    int   sector_GMT;   //  0 - 11.  Filled in EMTFHit.cc using calc_sector_GMT above
+    int   subsector;    //  1 -  2.  Filled in EMTFHit.cc or emulator using calc_subsector above
+    int   chamber;      //  1 - 36.  Filled in EMTFHit.cc from CSCDetId
+    int   layer;        //  ? -  ?.  Filled in BXAnalyzer.h.  How can we access?
+    int   csc_ID;       //  1 -  9.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi or emulator from CSCData
+    int   mpc_link;     //  1 -  3.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   wire;         //  1 -  ?.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   strip;        //  1 -  ?.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   zone_hit;     //  4 - 118. Filled in emulator from ConvertedHit.Zhit()
+    int   track_num;    //  ? -  ?.  Filled in emulator from CSCData 
+    int   phi_hit;      //  1 - 42.  Filled in emulator from ConvertedHit.Ph_hit()
+    int   phi_z_val;    //  1 -  6.  Filled in emulator from ConvertedHit.Phzvl()
+    int   phi_loc_int;  //  ? -  ?.  Filled in emulator from ConvertedHit.Phi()
+    float phi_loc_deg;  //  ? -  ?.  Filled in emulator, calculated from phi_loc_int with GetPackedPhi
+    float phi_loc_rad;  //  ? -  ?.  Filled in emulator, calculated from phi_loc_int with GetPackedPhi
+    float phi_glob_deg; //  +/-180.  Filled in emulator, calculated from phi_loc_int with GetPackedPhi
+    float phi_glob_rad; //  +/- pi.  Filled in emulator, calculated from phi_loc_int with GetPackedPhi
+    float phi_geom_rad; //  The global phi value returned by L1Trigger/L1TMuon/interface/deprecate/GeometryTranslator.h.  Not yet filled - AWB 06.04.16
+    int   theta_int;    //  ? -  ?.  Filled in emulator from ConvertedHit.Theta()
+    float theta_loc;    //  Some bizzare local definition of theta.  Not yet filled - AWB 06.04.16
+    float theta_deg;    // 10 - 45.  Filled in emulator from calc_theta_deg above
+    float theta_rad;    // .2 - .8.  Filled in emulator from calc_theta_rad above
+    float eta;          // +/- 2.5.  Filled in emulator from calc_eta above
+    int   quality;      //  0 - 15.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   pattern;      //  0 - 10.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   bend;         //  0 or 1.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   valid;        //  0 or 1.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   sync_err;     //  0 or 1.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   bx0;          //  1-3600.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   bx;           //  3 -  9.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    bool  is_CSC_hit;   //  0 or 1.  Filled in EMTFHit.cc
+    bool  is_RPC_hit;   //  0 or 1.  Filled in EMTFHit.cc
 
   }; // End of class EMTFHit
   
