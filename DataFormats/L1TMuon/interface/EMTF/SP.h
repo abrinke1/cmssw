@@ -53,7 +53,7 @@ namespace l1t {
 	if (_station == 1) {
 	  if      (_csc_ID <=  0) { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
 	  else if (_csc_ID <=  9) { int arr[] = {_csc_ID, new_sector, _subsector, 0}; std::vector<int> vec(arr, arr+4); return vec; }
-	  else new_sector = (_sector != 1) ? _sector-1 : 6;
+	  else new_sector = (_sector != 6) ? _sector+1 : 1;
 
 	  if      (_csc_ID == 10) { int arr[] = {3, new_sector, 2, 1}; std::vector<int> vec(arr, arr+4); return vec; }
 	  else if (_csc_ID == 11) { int arr[] = {6, new_sector, 2, 1}; std::vector<int> vec(arr, arr+4); return vec; }
@@ -63,7 +63,7 @@ namespace l1t {
 	else if (_station == 2 || _station == 3 || _station == 4) {
 	  if      (_csc_ID <=  0) { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
 	  else if (_csc_ID <=  9) { int arr[] = {_csc_ID, new_sector, -99, 0}; std::vector<int> vec(arr, arr+4); return vec; }
-	  else new_sector = (_sector != 1) ? _sector-1 : 6;
+	  else new_sector = (_sector != 6) ? _sector+1 : 1;
 
 	  if      (_csc_ID == 10) { int arr[] = {3, new_sector, -99, 1}; std::vector<int> vec(arr, arr+4); return vec; }
 	  else if (_csc_ID == 11) { int arr[] = {6, new_sector, -99, 1}; std::vector<int> vec(arr, arr+4); return vec; }
