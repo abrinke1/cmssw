@@ -330,9 +330,10 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 				int station = A->TP().detId<CSCDetId>().station();
 				int id = A->TP().getCSCData().cscID;
 				int trknm = A->TP().getCSCData().trknmb;//A->TP().getCSCData().bx
-
+				
 				phis[station-1] = A->Phi();
-
+				
+				
 				if(A->TP().getCSCData().bx < ebx){
 					sebx = ebx;
 					ebx = A->TP().getCSCData().bx;
@@ -381,7 +382,8 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 					me2address |= trknm-1;
 
 				}
-				
+
+
 			}
 
 		}
@@ -397,8 +399,7 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		int charge = getCharge(phis[0],phis[1],phis[2],phis[3],mode);
 
 		l1t::RegionalMuonCand outCand = MakeRegionalCand(xmlpt*1.4,AllTracks[fbest].phi,AllTracks[fbest].theta,
-								 charge,mode,CombAddress,sector);
-
+														         charge,mode,CombAddress,sector);
         // NOTE: assuming that all candidates come from the central BX:
         //int bx = 0;
 		float theta_angle = (AllTracks[fbest].theta*0.2851562 + 8.5)*(3.14159265359/180);
@@ -427,12 +428,11 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		// thisTrack.phi_loc_rad(); // Need to implement - AWB 04.04.16
 		// thisTrack.phi_glob_rad(); // Need to implement - AWB 04.04.16
 
-		// // Hacks to make emulator consistent with firmware, for emulator-data comparisons - AWB 29.03.16
-		// outCand.setHwQual(mode);
-		// std::pair<int,l1t::RegionalMuonCand> outPair(ebx,outCand);
+ 		// // Optimal emulator configuration - AWB 29.03.16
+		// std::pair<int,l1t::RegionalMuonCand> outPair(sebx,outCand);
 
- 		// Standard emulator configuration - AWB 29.03.16
-		std::pair<int,l1t::RegionalMuonCand> outPair(sebx,outCand);
+		// Actual setting in firmware - AWB 12.04.16
+		std::pair<int,l1t::RegionalMuonCand> outPair(ebx,outCand);
 
 		if(!ME13 && fabs(eta) > 1.1) {
 		  // // Extra debugging output - AWB 29.03.16
@@ -452,7 +452,7 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		OutputTracks->push_back( thisTrack );
 	}
   }
-
+  
 OutputCands->setBXRange(-2,2);
 
 for(int sect=0;sect<12;sect++){
