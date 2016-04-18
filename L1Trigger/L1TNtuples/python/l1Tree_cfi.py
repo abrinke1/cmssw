@@ -29,9 +29,11 @@ l1Tree = cms.EDAnalyzer("L1NtupleProducer",
     dttfTrkSource           = cms.InputTag("dttfDigis"),
     ecalSource           = cms.InputTag("ecalDigis:EcalTriggerPrimitives"),
     hcalSource           = cms.InputTag("hcalDigis"),
+
     csctfTrkSource       = cms.InputTag("csctfDigis"),
     csctfLCTSource       = cms.InputTag("csctfDigis"),
     csctfStatusSource    = cms.InputTag("csctfDigis"),
+
     csctfDTStubsSource   = cms.InputTag("csctfDigis:DT"),
     # if initCSCTFPtLutsPSet is True, then the CSCTF ptLUTs
     # get initialized from the PSet, csctfPtLutsPSet
