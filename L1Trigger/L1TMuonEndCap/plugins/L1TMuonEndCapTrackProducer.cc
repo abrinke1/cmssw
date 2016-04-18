@@ -128,11 +128,11 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
   //////////////////////////////////////////////////////  Input is raw hit information from
   ///////////////// TP Conversion //////////////////////  Output is vector of Converted Hits
   //////////////////////////////////////////////////////
-
-
+  
+  
  	std::vector<ConvertedHit> ConvHits = PrimConv(tester,SectIndex);
 	CHits[SectIndex] = ConvHits;
-
+	
 	// Fill OutputHits with ConvertedHit information
 	for (uint iCHit = 0; iCHit < ConvHits.size(); iCHit++) {
 	  for (uint iHit = 0; iHit < OutputHits->size(); iHit++) {
@@ -146,7 +146,7 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 	      OutputHits->at(iHit).set_phi_z_val   ( ConvHits.at(iCHit).Phzvl()  );
 	      OutputHits->at(iHit).set_phi_loc_int ( ConvHits.at(iCHit).Phi()    );
 	      OutputHits->at(iHit).set_theta_int   ( ConvHits.at(iCHit).Theta()  );
-
+	      
 	      OutputHits->at(iHit).SetZoneContribution ( ConvHits.at(iCHit).ZoneContribution() );
 	      OutputHits->at(iHit).set_phi_loc_deg  ( GetPackedPhi( OutputHits->at(iHit).Phi_loc_int() ) );
 	      OutputHits->at(iHit).set_phi_loc_rad  ( OutputHits->at(iHit).Phi_loc_deg() * 3.14159/180 );
@@ -469,16 +469,16 @@ for(int sect=0;sect<12;sect++){
 		}
 		
 	}
-}
-
-
-//ev.put( FoundTracks, "DataITC");
-ev.put( OutputCands, "EMTF");
+ }
+ 
+ 
+ //ev.put( FoundTracks, "DataITC");
+ ev.put( OutputCands, "EMTF");
  ev.put( OutputHits, "EMTF"); 
  ev.put( OutputTracks, "EMTF");
-  //std::cout<<"End Upgraded Track Finder Prducer:::::::::::::::::::::::::::\n:::::::::::::::::::::::::::::::::::::::::::::::::\n\n";
+ std::cout<<"End Upgraded Track Finder Prducer:::::::::::::::::::::::::::\n:::::::::::::::::::::::::::::::::::::::::::::::::\n\n";
 
-}//analyzer
+} // end analyzer
 
 void L1TMuonEndCapTrackProducer::beginJob()
 {
