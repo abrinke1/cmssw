@@ -15,8 +15,8 @@ namespace l1t {
     
   EMTFTrack() :
     // Using -999 instead of -99 b/c this seems most common in the emulator.  Unfortunate. - AWB 17.03.16
-    endcap(-999), sector(-999), sector_GMT(-999), type(-999), mode(-999), quality(-999), rank(-999), layer(-999), 
-      straightness(-999), strip(-999), first_bx(-999), second_bx(-999), pt(-999), pt_GMT(-999), pt_XML(-999), 
+    endcap(-999), sector(-999), sector_GMT(-999), type(-999), mode(-999), mode_uncorr, quality(-999), rank(-999), layer(-999), 
+      straightness(-999), strip(-999), first_bx(-999), second_bx(-999), pt(-999), pt_GMT(-999), pt_XML(-999), pt_LUT(0),
       theta_int(-999), theta_deg(-999), theta_rad(-999), eta(-999), eta_GMT(-999), 
       phi_loc_int(-999), phi_loc_deg(-999), phi_loc_rad(-999), phi_glob_deg(-999), phi_glob_rad(-999), 
       phi_GMT(-999), charge(-999), charge_GMT(-999), isGMT(0),
@@ -47,6 +47,7 @@ namespace l1t {
     void set_sector_GMT    (int  bits) { sector_GMT   = bits; };
     void set_type          (int  bits) { type         = bits; };
     void set_mode          (int  bits) { mode         = bits; };
+    void set_mode_uncorr   (int  bits) { mode_uncorr  = bits; };
     void set_quality       (int  bits) { quality      = bits; };
     void set_rank          (int  bits) { rank         = bits; };
     void set_layer         (int  bits) { layer        = bits; };
@@ -57,6 +58,7 @@ namespace l1t {
     void set_pt            (float val) { pt           = val;  };
     void set_pt_GMT        (int  bits) { pt_GMT       = bits; };
     void set_pt_XML        (float val) { pt_XML       = val;  };
+    void set_pt_LUT (unsigned long  bits)  { pt_LUT   = bits; };
     void set_theta_int     (int  bits) { theta_int    = bits; };
     void set_theta_deg     (float val) { theta_deg    = val;  };
     void set_theta_rad     (float val) { theta_rad    = val;  };
@@ -77,6 +79,7 @@ namespace l1t {
     int   Sector_GMT()    const { return  sector_GMT;   };
     int   Type()          const { return  type;         };
     int   Mode()          const { return  mode;         };
+    int   Mode_uncorr()   const { return  mode_uncorr;  };
     int   Quality()       const { return  quality;      };
     int   Rank()          const { return  rank;         };
     int   Layer()         const { return  layer;        };
@@ -87,6 +90,7 @@ namespace l1t {
     float Pt()            const { return  pt;           };
     int   Pt_GMT()        const { return  pt_GMT;       };
     float Pt_XML()        const { return  pt_XML;       };
+    unsigned long Pt_LUT() const { return  pt_LUT;      };
     int   Theta_int()     const { return  theta_int;    };
     float Theta_deg()     const { return  theta_deg;    };
     float Theta_rad()     const { return  theta_rad;    };
@@ -118,6 +122,7 @@ namespace l1t {
     int   sector_GMT;   //  0 - 11.  Filled in emulator from hit.
     int   type;         //  Don't remember what this is - AWB 06.04.16
     int   mode;         //  0 - 15.  Filled in emulator.
+    int   mode_uncorr;  //  0 - 15.  Filled in emulator.
     int   quality;      //  0 - 15.  Filled in emultaor.
     int   rank;         //  ? -  ?.  Filled in emulator.
     int   layer;        //  ? -  ?.  Computed in BXAnalyzer.h.  How can we access?
@@ -128,6 +133,7 @@ namespace l1t {
     float pt;           //  ? -  ?.  Filled in emulator.
     int   pt_GMT;       //  ? -  ?.  Filled in emulator.
     float pt_XML;       //  ? -  ?.  Filled in emulator.
+    unsigned long pt_LUT; // ? - ?.  Filled in emulator.
     int   theta_int;    //  ? -  ?.  Filled in emulator.
     float theta_deg;    //  ? -  ?.  Filled in emulator.
     float theta_rad;    //  ? -  ?.  Filled in emulator.

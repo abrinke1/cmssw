@@ -135,12 +135,17 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 
 	// Fill OutputHits with ConvertedHit information
 	for (uint iCHit = 0; iCHit < ConvHits.size(); iCHit++) {
+	  // bool isMatched = false;
 	  for (uint iHit = 0; iHit < OutputHits->size(); iHit++) {
-	    if ( ConvHits.at(iCHit).Station() == OutputHits->at(iHit).Station() and
-		 ConvHits.at(iCHit).Id()      == OutputHits->at(iHit).CSC_ID()  and
-		 ConvHits.at(iCHit).Wire()    == OutputHits->at(iHit).Wire()    and
-		 ConvHits.at(iCHit).Strip()   == OutputHits->at(iHit).Strip()   and
+	    if ( ConvHits.at(iCHit).Station() == OutputHits->at(iHit).Station() &&
+		 ( ConvHits.at(iCHit).Id()    == OutputHits->at(iHit).CSC_ID()  ||
+		   ConvHits.at(iCHit).Id()    == ( (OutputHits->at(iHit).Ring() != 4) // Account for either ME1/1a 
+						   ? OutputHits->at(iHit).CSC_ID()    // CSC ID numbering convention
+						   : OutputHits->at(iHit).CSC_ID() + 9 ) ) &&
+		 ConvHits.at(iCHit).Wire()    == OutputHits->at(iHit).Wire()    &&
+		 ConvHits.at(iCHit).Strip()   == OutputHits->at(iHit).Strip()   &&
 		 ConvHits.at(iCHit).BX()      == OutputHits->at(iHit).BX() ) {
+	      // isMatched = true;
 	      OutputHits->at(iHit).set_zone_hit    ( ConvHits.at(iCHit).Zhit()   );
 	      OutputHits->at(iHit).set_phi_hit     ( ConvHits.at(iCHit).Ph_hit() );
 	      OutputHits->at(iHit).set_phi_z_val   ( ConvHits.at(iCHit).Phzvl()  );
@@ -156,9 +161,25 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 	      OutputHits->at(iHit).set_theta_rad    ( OutputHits->at(iHit).calc_theta_rad( OutputHits->at(iHit).Theta_int() ) );
 	      OutputHits->at(iHit).set_eta( OutputHits->at(iHit).calc_eta( OutputHits->at(iHit).Theta_rad() ) * OutputHits->at(iHit).Endcap() );
 	    }
-	  }
-	}
+	  } // End loop: for (uint iHit = 0; iHit < OutputHits->size(); iHit++)
 
+	  // if (isMatched == false) {
+	  //   std::cout << "***********************************************" << std::endl;
+	  //   std::cout << "Unmatched ConvHit in event " << ev.id().event() << ", SectIndex " << SectIndex << std::endl;
+	  //   std::cout << "ConvHit: station = " << ConvHits.at(iCHit).Station() << ", CSC ID = " << ConvHits.at(iCHit).Id()
+	  // 	      << ", wire = " << ConvHits.at(iCHit).Wire() << ", strip = " << ConvHits.at(iCHit).Strip()
+	  // 	      << ", BX = " << ConvHits.at(iCHit).BX() << std::endl;
+	    
+	  //   for (uint iHit = 0; iHit < OutputHits->size(); iHit++) {
+	  //     std::cout << "EMTFHit: station = " << OutputHits->at(iHit).Station() << ", CSC ID = " << OutputHits->at(iHit).CSC_ID()
+	  // 		<< ", wire = " << OutputHits->at(iHit).Wire() << ", strip = " << OutputHits->at(iHit).Strip()
+	  // 		<< ", BX = " << OutputHits->at(iHit).BX() << ", ring = " << OutputHits->at(iHit).Ring() 
+	  // 		<< ", endcap = " << OutputHits->at(iHit).Endcap() << ", sector = " << OutputHits->at(iHit).Sector() << std::endl;
+	  //   }
+	  // }
+
+	} // End loop: for (uint iCHit = 0; iCHit < ConvHits.size(); iCHit++)
+	
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////print values for input into Alex's emulator code/////////////////////////////////////////////////////
@@ -302,7 +323,7 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 
 		int sector = -1;
 		bool ME13 = false;
-		int me1address = 0, me2address = 0, CombAddress = 0, mode = 0;
+		int me1address = 0, me2address = 0, CombAddress = 0, mode_uncorr = 0;
 		int ebx = 20, sebx = 20;
 		int phis[4] = {-99,-99,-99,-99};
 
@@ -349,11 +370,11 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 				//std::cout<<"Q: "<<A->Quality()<<", keywire: "<<A->Wire()<<", strip: "<<A->Strip()<<std::endl;
 
 				switch(station){
-					case 1: mode |= 8;break;
-					case 2: mode |= 4;break;
-					case 3: mode |= 2;break;
-					case 4: mode |= 1;break;
-					default: mode |= 0;
+					case 1: mode_uncorr |= 8;break;
+					case 2: mode_uncorr |= 4;break;
+					case 3: mode_uncorr |= 2;break;
+					case 4: mode_uncorr |= 1;break;
+					default: mode_uncorr |= 0;
 				}
 
 
@@ -387,10 +408,33 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 			}
 
 		}
+		
+		
+		int RTM = 0;
+		if(tempTrack.rank & 32)
+			RTM |= 1;
+		if(tempTrack.rank & 8)
+			RTM |= 2;
+		if(tempTrack.rank & 2)
+			RTM |= 4;
+		if(tempTrack.rank & 1)
+			RTM |= 8;
+
+		int mode = 0;
+		if(tempTrack.rank & 32)
+			mode |= 8;
+		if(tempTrack.rank & 8)
+			mode |= 4;
+		if(tempTrack.rank & 2)
+			mode |= 2;
+		if(tempTrack.rank & 1)
+			mode |= 1;
+
 		tempTrack.phis = ps;
 		tempTrack.thetas = ts;
 
-		float xmlpt = CalculatePt(tempTrack,es);
+		unsigned long xmlpt_address = 0;
+		float xmlpt = CalculatePt(tempTrack, es, RTM, &xmlpt_address);
 		tempTrack.pt = xmlpt*1.4;
 		//FoundTracks->push_back(tempTrack);
 
@@ -399,24 +443,26 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		int charge = getCharge(phis[0],phis[1],phis[2],phis[3],mode);
 
 		l1t::RegionalMuonCand outCand = MakeRegionalCand(xmlpt*1.4,AllTracks[fbest].phi,AllTracks[fbest].theta,
-														         charge,mode,CombAddress,sector);
+								 charge,mode,CombAddress,sector);
         // NOTE: assuming that all candidates come from the central BX:
         //int bx = 0;
 		float theta_angle = (AllTracks[fbest].theta*0.2851562 + 8.5)*(3.14159265359/180);
 		float eta = (-1)*log(tan(theta_angle/2));
 
-		thisTrack.set_phi_loc_deg  ( GetPackedPhi( thisTrack.Phi_loc_int() ) );
+		thisTrack.set_phi_loc_deg  ( (thisTrack.Phi_loc_int() / 60.0) - 2.0 );
 		thisTrack.set_phi_loc_rad  ( thisTrack.Phi_loc_deg() * 3.14159/180 );
 		thisTrack.set_phi_glob_deg ( thisTrack.Phi_loc_deg() + 15 + (thisTrack.Sector() - 1)*60 );
 		thisTrack.set_phi_glob_rad ( thisTrack.Phi_glob_deg() * 3.14159/180 );
 		thisTrack.set_quality    ( outCand.hwQual());
 		thisTrack.set_mode       ( mode            ); 
+		thisTrack.set_mode_uncorr( mode_uncorr     ); 
 		thisTrack.set_first_bx   ( ebx             ); 
 		thisTrack.set_second_bx  ( sebx            ); 
 		thisTrack.set_phis       ( ps              );
 		thisTrack.set_thetas     ( ts              );
 		thisTrack.set_pt         ( xmlpt*1.4       );
 		thisTrack.set_pt_XML     ( xmlpt           );
+		thisTrack.set_pt_LUT     ( xmlpt_address   );
 		thisTrack.set_charge     ( (charge == 1) ? 1 : -1 );
 		thisTrack.set_charge_GMT ( charge          );
 		thisTrack.set_theta_rad  ( theta_angle     );

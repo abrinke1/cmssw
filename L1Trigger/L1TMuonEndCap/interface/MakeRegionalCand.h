@@ -93,9 +93,19 @@ l1t::RegionalMuonCand MakeRegionalCand(float pt, int phi, int theta,
 	
 	float eta = GetGlobalEta(theta,sector);
 	
+	int RTM = 0;
+	if(quality & 32)
+		RTM |= 8;
+	if(quality & 8)
+		RTM |= 4;
+	if(quality & 2)
+		RTM |= 2;
+	if(quality & 1)
+		RTM |= 1;
+	
 	if(eta < 1.2){
 	
-		switch(quality){
+		switch(RTM){
 			case(15): iQual = 8;break;
 			case(14): iQual = 4;break;
 			case(13): iQual = 4;break;
@@ -107,7 +117,7 @@ l1t::RegionalMuonCand MakeRegionalCand(float pt, int phi, int theta,
 	}
 	else{
 	
-		switch(quality){
+		switch(RTM){
 			case(15): iQual = 12;break;
 			case(14): iQual = 12;break;
 			case(13): iQual = 12;break;
