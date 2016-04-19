@@ -13,14 +13,17 @@ namespace l1t {
       explicit SP(uint64_t dataword);
     
     SP() :
-      pt_lut_address(-99), phi_local_int(-99), phi_GMT_int(-99), eta_GMT_int(-99), pt_int(-99), 
-	quality(-99), mode(-99), bx(-99), me1_subsector(-99), me1_CSC_ID(-99), me1_sector(-99),
+      pt_lut_address(-99), phi_local_int(-99), phi_GMT_int(-99), eta_GMT_int(-99), eta_LUT_int(-99), pt_int(-99), 
+	quality(-99), mode(-99), mode_LUT(-99), bx(-99), me1_subsector(-99), me1_CSC_ID(-99), me1_sector(-99),
 	me1_neighbor(-99), me1_trk_stub_num(-99), me2_CSC_ID(-99), me2_sector(-99), me2_neighbor(-99),
 	me2_trk_stub_num(-99), me3_CSC_ID(-99), me3_sector(-99), me3_neighbor(-99), me3_trk_stub_num(-99), 
 	me4_CSC_ID(-99), me4_sector(-99), me4_neighbor(-99), me4_trk_stub_num(-99), me1_delay(-99), 
 	me2_delay(-99), me3_delay(-99), me4_delay(-99), tbin_num(-99), hl(-99), c(-99), vc(-99), 
 	vt(-99), se(-99), bc0(-99), pt(-99), phi_local(-99), phi_local_rad(-99), phi_global(-99), 
-	phi_GMT(-99), phi_GMT_corr(-99), phi_GMT_rad(-99), phi_GMT_global(-99), eta_GMT(-99), 
+	phi_GMT(-99), phi_GMT_corr(-99), phi_GMT_rad(-99), phi_GMT_global(-99), eta_GMT(-99),  
+	dPhi_12(-99), dPhi_13(-99), dPhi_14(-99), dPhi_23(-99), dPhi_24(-99), dPhi_34(-99),
+	dTheta_12(-99), dTheta_13(-99), dTheta_14(-99), dTheta_23(-99), dTheta_24(-99), dTheta_34(-99),
+	clct_1(-99), clct_2(-99), clct_3(-99), clct_4(-99), fr_1(-99), fr_2(-99), fr_3(-99), fr_4(-99),
 	format_errors(0), dataword(-99) 
 	{};
 
@@ -51,8 +54,9 @@ namespace l1t {
       std::vector<int> convert_chamber_SP(int _csc_ID, int _sector, int _subsector, int _station) {
 	int new_sector = _sector;
 	if (_station == 1) {
-	  if      (_csc_ID <=  0) { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
-	  else if (_csc_ID <=  9) { int arr[] = {_csc_ID, new_sector, _subsector, 0}; std::vector<int> vec(arr, arr+4); return vec; }
+	  if      (_csc_ID <  0) { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
+	  else if (_csc_ID == 0) { int arr[] = { -1,  -1,  -1,  -1}; std::vector<int> vec(arr, arr+4); return vec; }
+	  else if (_csc_ID <= 9) { int arr[] = {_csc_ID, new_sector, _subsector, 0}; std::vector<int> vec(arr, arr+4); return vec; }
 	  else new_sector = (_sector != 6) ? _sector+1 : 1;
 
 	  if      (_csc_ID == 10) { int arr[] = {3, new_sector, 2, 1}; std::vector<int> vec(arr, arr+4); return vec; }
@@ -61,12 +65,13 @@ namespace l1t {
 	  else { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
 	}
 	else if (_station == 2 || _station == 3 || _station == 4) {
-	  if      (_csc_ID <=  0) { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
-	  else if (_csc_ID <=  9) { int arr[] = {_csc_ID, new_sector, -99, 0}; std::vector<int> vec(arr, arr+4); return vec; }
+	  if      (_csc_ID <  0) { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
+	  else if (_csc_ID == 0) { int arr[] = { -1,  -1,  -1,  -1}; std::vector<int> vec(arr, arr+4); return vec; }
+	  else if (_csc_ID <= 9) { int arr[] = {_csc_ID, new_sector, -1, 0}; std::vector<int> vec(arr, arr+4); return vec; }
 	  else new_sector = (_sector != 6) ? _sector+1 : 1;
 
-	  if      (_csc_ID == 10) { int arr[] = {3, new_sector, -99, 1}; std::vector<int> vec(arr, arr+4); return vec; }
-	  else if (_csc_ID == 11) { int arr[] = {6, new_sector, -99, 1}; std::vector<int> vec(arr, arr+4); return vec; }
+	  if      (_csc_ID == 10) { int arr[] = {3, new_sector, -1, 1}; std::vector<int> vec(arr, arr+4); return vec; }
+	  else if (_csc_ID == 11) { int arr[] = {6, new_sector, -1, 1}; std::vector<int> vec(arr, arr+4); return vec; }
 	  else { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
 	}
 	else { int arr[] = {-99, -99, -99, -99}; std::vector<int> vec(arr, arr+4); return vec; }
@@ -105,9 +110,11 @@ namespace l1t {
       void set_eta_GMT(float val)                  { eta_GMT= val;
                                                       set_eta_GMT_int_only(calc_eta_GMT_int(eta_GMT));          };
 
-      void set_pt_lut_address(int bits)   { pt_lut_address = bits;   };
+      void set_pt_lut_address(unsigned long bits) { pt_lut_address = bits;   };
+      void set_eta_LUT_int(int bits)      { eta_LUT_int = bits;      };
       void set_quality(int bits)          { quality = bits;          };
       void set_mode(int bits)             { mode = bits;             };
+      void set_mode_LUT(int bits)         { mode_LUT = bits;         };
       void set_bx(int bits)               { bx = bits;               };
       void set_me1_subsector(int bits)    { me1_subsector = bits;    };
       void set_me1_CSC_ID(int bits)       { me1_CSC_ID = bits;       };
@@ -137,16 +144,38 @@ namespace l1t {
       void set_vt(int bits)               { vt = bits;               };
       void set_se(int bits)               { se = bits;               };
       void set_bc0(int bits)              { bc0 = bits;              };
+      void set_dPhi_12(int bits)          { dPhi_12 = bits;          };
+      void set_dPhi_13(int bits)          { dPhi_13 = bits;          };
+      void set_dPhi_14(int bits)          { dPhi_14 = bits;          };
+      void set_dPhi_23(int bits)          { dPhi_23 = bits;          };
+      void set_dPhi_24(int bits)          { dPhi_24 = bits;          };
+      void set_dPhi_34(int bits)          { dPhi_34 = bits;          };
+      void set_dTheta_12(int bits)        { dTheta_12 = bits;        };
+      void set_dTheta_13(int bits)        { dTheta_13 = bits;        };
+      void set_dTheta_14(int bits)        { dTheta_14 = bits;        };
+      void set_dTheta_23(int bits)        { dTheta_23 = bits;        };
+      void set_dTheta_24(int bits)        { dTheta_24 = bits;        };
+      void set_dTheta_34(int bits)        { dTheta_34 = bits;        };
+      void set_clct_1(int bits)           { clct_1 = bits;           };
+      void set_clct_2(int bits)           { clct_2 = bits;           };
+      void set_clct_3(int bits)           { clct_3 = bits;           };
+      void set_clct_4(int bits)           { clct_4 = bits;           };
+      void set_fr_1(int bits)             { fr_1 = bits;             };
+      void set_fr_2(int bits)             { fr_2 = bits;             };
+      void set_fr_3(int bits)             { fr_3 = bits;             };
+      void set_fr_4(int bits)             { fr_4 = bits;             };
       void add_format_error()             { format_errors += 1;      };
       void set_dataword(uint64_t bits)    { dataword = bits;         };
 
-      int      Pt_lut_address()   const { return pt_lut_address;   };
+      unsigned long Pt_lut_address() const { return pt_lut_address;   };
       int      Phi_local_int()    const { return phi_local_int;    };
       int      Phi_GMT_int()      const { return phi_GMT_int;      };
       int      Eta_GMT_int()      const { return eta_GMT_int;      };
+      int      Eta_LUT_int()      const { return eta_LUT_int;      };
       int      Pt_int()           const { return pt_int;           };
       int      Quality()          const { return quality;          };
       int      Mode()             const { return mode;             };
+      int      Mode_LUT()         const { return mode_LUT;         };
       int      BX()               const { return bx;               };
       int      ME1_subsector()    const { return me1_subsector;    };
       int      ME1_CSC_ID()       const { return me1_CSC_ID;       };
@@ -185,6 +214,26 @@ namespace l1t {
       float    Phi_GMT_rad()      const { return phi_GMT_rad;      };
       float    Phi_GMT_global()   const { return phi_GMT_global;   };
       float    Eta_GMT()          const { return eta_GMT;          };
+      int      DPhi_12()          const { return dPhi_12;          };
+      int      DPhi_13()          const { return dPhi_13;          };
+      int      DPhi_14()          const { return dPhi_14;          };
+      int      DPhi_23()          const { return dPhi_23;          };
+      int      DPhi_24()          const { return dPhi_24;          };
+      int      DPhi_34()          const { return dPhi_34;          };
+      int      DTheta_12()        const { return dTheta_12;        };
+      int      DTheta_13()        const { return dTheta_13;        };
+      int      DTheta_14()        const { return dTheta_14;        };
+      int      DTheta_23()        const { return dTheta_23;        };
+      int      DTheta_24()        const { return dTheta_24;        };
+      int      DTheta_34()        const { return dTheta_34;        };
+      int      CLCT_1()           const { return clct_1;           };
+      int      CLCT_2()           const { return clct_2;           };
+      int      CLCT_3()           const { return clct_3;           };
+      int      CLCT_4()           const { return clct_4;           };
+      int      FR_1()             const { return fr_1;             };
+      int      FR_2()             const { return fr_2;             };
+      int      FR_3()             const { return fr_3;             };
+      int      FR_4()             const { return fr_4;             };
       int      Format_Errors()    const { return format_errors;    };
       uint64_t Dataword()         const { return dataword;         }; 
       
@@ -204,13 +253,15 @@ namespace l1t {
       void set_eta_GMT_only(float val)        { eta_GMT = val;        };
       void set_eta_GMT_int_only(int  bits)    { eta_GMT_int = bits;   };
 
-      int pt_lut_address;
+      unsigned long pt_lut_address;
       int phi_local_int;
       int phi_GMT_int;
       int eta_GMT_int;
+      int eta_LUT_int;
       int pt_int;
       int quality;
       int mode;
+      int mode_LUT;
       int bx;
       int me1_subsector;
       int me1_CSC_ID;      
@@ -249,7 +300,27 @@ namespace l1t {
       float phi_GMT_rad;
       float phi_GMT_global;
       float eta_GMT;
-      int  format_errors;
+      int   dPhi_12;
+      int   dPhi_13;
+      int   dPhi_14;
+      int   dPhi_23;
+      int   dPhi_24;
+      int   dPhi_34;
+      int   dTheta_12;
+      int   dTheta_13;
+      int   dTheta_14;
+      int   dTheta_23;
+      int   dTheta_24;
+      int   dTheta_34;
+      int   clct_1;
+      int   clct_2;
+      int   clct_3;
+      int   clct_4;
+      int   fr_1;
+      int   fr_2;
+      int   fr_3;
+      int   fr_4;
+      int format_errors;
       uint64_t dataword;
       
     }; // End of class SP

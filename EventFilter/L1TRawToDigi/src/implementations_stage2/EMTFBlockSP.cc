@@ -103,6 +103,7 @@ namespace l1t {
 	res = static_cast<EMTFCollections*>(coll)->getEMTFOutputs();
 	int iOut = res->size() - 1;
 	std::vector<int> conv_vals_SP;
+	std::vector<int> conv_vals_pT_LUT;
 
 	RegionalMuonCandBxCollection* res_cand;
 	res_cand = static_cast<EMTFCollections*>(coll)->getRegionalMuonCands();
@@ -196,6 +197,31 @@ namespace l1t {
         SP_.set_me4_neighbor  ( conv_vals_SP.at(3) );
 	// std::cout << "Converted ME4: CSC ID = " << SP_.ME4_CSC_ID() << ", Sector = " << SP_.ME4_sector() << ", neighbor = " << SP_.ME4_neighbor() << std::endl;
 
+	l1t::EMTFTrack tmp_trk;
+	std::vector<int> conv_pT_LUT = tmp_trk.Convert_pT_LUT( SP_.Mode(), SP_.Pt_lut_address() );
+	  
+	SP_.set_dPhi_12(     conv_pT_LUT.at( 0) );     
+	SP_.set_dPhi_13(     conv_pT_LUT.at( 1) );     
+	SP_.set_dPhi_14(     conv_pT_LUT.at( 2) );     
+	SP_.set_dPhi_23(     conv_pT_LUT.at( 3) );     
+	SP_.set_dPhi_24(     conv_pT_LUT.at( 4) );     
+	SP_.set_dPhi_34(     conv_pT_LUT.at( 5) );     
+	SP_.set_dTheta_12(   conv_pT_LUT.at( 6) );   
+	SP_.set_dTheta_13(   conv_pT_LUT.at( 7) );   
+	SP_.set_dTheta_14(   conv_pT_LUT.at( 8) );   
+	SP_.set_dTheta_23(   conv_pT_LUT.at( 9) );   
+	SP_.set_dTheta_24(   conv_pT_LUT.at(10) );   
+	SP_.set_dTheta_34(   conv_pT_LUT.at(11) );   
+	SP_.set_clct_1(      conv_pT_LUT.at(12) );      
+	SP_.set_clct_2(      conv_pT_LUT.at(13) );      
+	SP_.set_clct_3(      conv_pT_LUT.at(14) );      
+	SP_.set_clct_4(      conv_pT_LUT.at(15) );      
+	SP_.set_fr_1(        conv_pT_LUT.at(16) );        
+	SP_.set_fr_2(        conv_pT_LUT.at(17) );        
+	SP_.set_fr_3(        conv_pT_LUT.at(18) );        
+	SP_.set_fr_4(        conv_pT_LUT.at(19) );        
+	SP_.set_eta_LUT_int( conv_pT_LUT.at(20) ); 
+	SP_.set_mode_LUT(    conv_pT_LUT.at(21) );    
 
 	// write: // Temporarily disable for DQM operation - AWB 09.04.16
 

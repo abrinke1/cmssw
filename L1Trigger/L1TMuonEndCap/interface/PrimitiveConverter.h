@@ -244,7 +244,7 @@ std::vector<ConvertedHit> PrimConv(std::vector<TriggerPrimitive> TriggPrim, int 
 		
 		if(th_tmp < th_coverage){
 		
-			if(ring == 1){LUTi += 9;}  //change because new Verilog3 sp_tf treats ME11b with LUT's of ME11a
+			//if(ring == 1){LUTi += 9;}  //change because new Verilog3 sp_tf treats ME11b with LUT's of ME11a
 			
 			th = th_tmp + ThInit[SectIndex][LUTi];
 		}

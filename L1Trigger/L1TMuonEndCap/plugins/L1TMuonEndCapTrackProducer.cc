@@ -455,7 +455,6 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		thisTrack.set_phi_glob_rad ( thisTrack.Phi_glob_deg() * 3.14159/180 );
 		thisTrack.set_quality    ( outCand.hwQual());
 		thisTrack.set_mode       ( mode            ); 
-		thisTrack.set_mode_uncorr( mode_uncorr     ); 
 		thisTrack.set_first_bx   ( ebx             ); 
 		thisTrack.set_second_bx  ( sebx            ); 
 		thisTrack.set_phis       ( ps              );
@@ -471,6 +470,32 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		thisTrack.set_pt_GMT     ( outCand.hwPt()  ); 
 		thisTrack.set_phi_GMT    ( outCand.hwPhi() );
 		thisTrack.set_eta_GMT    ( outCand.hwEta() );
+
+
+		std::vector<int> conv_pT_LUT = thisTrack.Convert_pT_LUT( thisTrack.Mode(), thisTrack.Pt_LUT() );
+		thisTrack.set_dPhi_12(     conv_pT_LUT.at( 0) );
+		thisTrack.set_dPhi_13(     conv_pT_LUT.at( 1) );
+		thisTrack.set_dPhi_14(     conv_pT_LUT.at( 2) );
+		thisTrack.set_dPhi_23(     conv_pT_LUT.at( 3) );
+		thisTrack.set_dPhi_24(     conv_pT_LUT.at( 4) );
+		thisTrack.set_dPhi_34(     conv_pT_LUT.at( 5) );
+		thisTrack.set_dTheta_12(   conv_pT_LUT.at( 6) );
+		thisTrack.set_dTheta_13(   conv_pT_LUT.at( 7) );
+		thisTrack.set_dTheta_14(   conv_pT_LUT.at( 8) );
+		thisTrack.set_dTheta_23(   conv_pT_LUT.at( 9) );
+		thisTrack.set_dTheta_24(   conv_pT_LUT.at(10) );
+		thisTrack.set_dTheta_34(   conv_pT_LUT.at(11) );
+		thisTrack.set_clct_1(      conv_pT_LUT.at(12) );
+		thisTrack.set_clct_2(      conv_pT_LUT.at(13) );
+		thisTrack.set_clct_3(      conv_pT_LUT.at(14) );
+		thisTrack.set_clct_4(      conv_pT_LUT.at(15) );
+		thisTrack.set_fr_1(        conv_pT_LUT.at(16) );
+		thisTrack.set_fr_2(        conv_pT_LUT.at(17) );
+		thisTrack.set_fr_3(        conv_pT_LUT.at(18) );
+		thisTrack.set_fr_4(        conv_pT_LUT.at(19) );
+		thisTrack.set_eta_LUT_int( conv_pT_LUT.at(20) );
+		thisTrack.set_mode_LUT(    conv_pT_LUT.at(21) );
+
 		// thisTrack.phi_loc_rad(); // Need to implement - AWB 04.04.16
 		// thisTrack.phi_glob_rad(); // Need to implement - AWB 04.04.16
 

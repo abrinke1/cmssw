@@ -4,6 +4,8 @@
 
 #include "DataFormats/L1TMuon/interface/RegionalMuonCand.h"
 #include "DataFormats/L1TMuon/interface/EMTFOutput.h"
+#include "DataFormats/L1TMuon/interface/EMTFHit.h"
+#include "DataFormats/L1TMuon/interface/EMTFTrack.h"
 
 #include "EventFilter/L1TRawToDigi/interface/PackerTokens.h"
 
