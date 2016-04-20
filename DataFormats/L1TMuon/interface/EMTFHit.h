@@ -11,6 +11,7 @@
 
 #include "DataFormats/MuonDetId/interface/CSCDetId.h"
 #include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigi.h"
+#include "DataFormats/L1TMuon/interface/EMTF/ME.h"
 
 namespace l1t {
   class EMTFHit {
@@ -19,14 +20,14 @@ namespace l1t {
   EMTFHit() :
     
     // Using -999 instead of -99 b/c this seems most common in the emulator.  Unfortunate. - AWB 17.03.16
-    endcap(-999), station(-999), ring(-999), sector(-999), sector_GMT(-999), subsector(-999), chamber(-999), 
-      layer(-999), csc_ID(-999), mpc_link(-999), wire(-999), strip(-999), zone_hit(-999), track_num(-999), 
-      phi_hit(-999), phi_z_val(-999), phi_loc_int(-999), phi_loc_deg(-999), phi_loc_rad(-999), 
-      phi_glob_deg(-999), phi_glob_rad(-999), phi_geom_rad(-999),
+    endcap(-999), station(-999), ring(-999), sector(-999), sector_GMT(-999), 
+      subsector(-999), chamber(-999), layer(-999), csc_ID(-999), neighbor(-999), 
+      mpc_link(-999), wire(-999), strip(-999), zone_hit(-999), track_num(-999), 
+      phi_hit(-999), phi_z_val(-999), phi_loc_int(-999), phi_loc_deg(-999), 
+      phi_loc_rad(-999), phi_glob_deg(-999), phi_glob_rad(-999), phi_geom_rad(-999),
       theta_int(-999), theta_loc(-999), theta_deg(-999), theta_rad(-999), eta(-999), 
-      quality(-999), pattern(-999), bend(-999), 
-      valid(-999), sync_err(-999), bx0(-999), bx(-999),
-      is_CSC_hit(false), is_RPC_hit(false)
+      quality(-999), pattern(-999), bend(-999), valid(-999), sync_err(-999), 
+      bx0(-999), bx(-999), is_CSC_hit(false), is_RPC_hit(false)
       {};
     
     virtual ~EMTFHit() {};
@@ -36,6 +37,7 @@ namespace l1t {
     // Functions defined in src/EMTFHit.cc
     void ImportCSCDetId ( const CSCDetId& _detId);
     void ImportCSCCorrelatedLCTDigi ( const CSCCorrelatedLCTDigi& _digi);
+    void ImportME ( const emtf::ME _ME );
 
     void SetZoneContribution (std::vector<int> vect_ints)  { zone_contribution = vect_ints; };
     void SetCSCDetId         (CSCDetId id)                 { csc_DetId         = id;        };
@@ -52,6 +54,22 @@ namespace l1t {
     float calc_theta_rad (int _theta_int) { return (_theta_int * 0.2851562 + 8.5) * (pi / 180); };
     float calc_eta     (float _theta_rad) { return -1 * log( tan( _theta_rad / 2 ) ); };
 
+    // Calculates ring value                                                                                                                     
+    int calc_ring(int _station, int _csc_ID, int _strip) {
+      if (_station > 1) {
+	if      (_csc_ID <  4) return 1;
+	else if (_csc_ID < 10) return 2;
+	else return -99;
+      }
+      else if (_station == 1) {
+	if      (_csc_ID < 4 && _strip > 127) return 4;
+	else if (_csc_ID < 4 && _strip >=  0) return 1;
+	else if (_csc_ID > 3 && _csc_ID <  7) return 2;
+	else if (_csc_ID > 6 && _csc_ID < 10) return 3;
+	else return -99;
+      }
+      else return -99;
+    }
     
     void set_endcap         (int  bits) { endcap        = bits; };
     void set_station        (int  bits) { station       = bits; };
@@ -62,6 +80,7 @@ namespace l1t {
     void set_chamber        (int  bits) { chamber       = bits; };
     void set_layer          (int  bits) { layer         = bits; };
     void set_csc_ID         (int  bits) { csc_ID        = bits; };
+    void set_neighbor       (int  bits) { neighbor      = bits; };
     void set_mpc_link       (int  bits) { mpc_link      = bits; };
     void set_wire           (int  bits) { wire          = bits; };
     void set_strip          (int  bits) { strip         = bits; };
@@ -99,6 +118,7 @@ namespace l1t {
     int   Chamber        ()  const { return chamber  ;      };
     int   Layer          ()  const { return layer    ;      };
     int   CSC_ID         ()  const { return csc_ID   ;      };
+    int   Neighbor       ()  const { return neighbor ;      };
     int   MPC_link       ()  const { return mpc_link ;      };
     int   Wire           ()  const { return wire     ;      };
     int   Strip          ()  const { return strip    ;      };
@@ -142,6 +162,7 @@ namespace l1t {
     int   chamber;      //  1 - 36.  Filled in EMTFHit.cc from CSCDetId
     int   layer;        //  ? -  ?.  Filled in BXAnalyzer.h.  How can we access?
     int   csc_ID;       //  1 -  9.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi or emulator from CSCData
+    int   neighbor;     //  0 or 1.  Filled in EMTFBlockME.cc 
     int   mpc_link;     //  1 -  3.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
     int   wire;         //  1 -  ?.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
     int   strip;        //  1 -  ?.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi

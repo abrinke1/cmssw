@@ -8,6 +8,7 @@
 #include <boost/cstdint.hpp> 
 
 #include "DataFormats/L1TMuon/interface/EMTFHit.h"
+#include "DataFormats/L1TMuon/interface/EMTF/SP.h"
 
 namespace l1t {
   class EMTFTrack {
@@ -15,14 +16,17 @@ namespace l1t {
     
   EMTFTrack() :
     // Using -999 instead of -99 b/c this seems most common in the emulator.  Unfortunate. - AWB 17.03.16
-    endcap(-999), sector(-999), sector_GMT(-999), type(-999), mode(-999), mode_LUT(-999), quality(-999), rank(-999), layer(-999), 
-      straightness(-999), strip(-999), first_bx(-999), second_bx(-999), pt(-999), pt_GMT(-999), pt_XML(-999), pt_LUT(0),
-      theta_int(-999), theta_deg(-999), theta_rad(-999), eta(-999), eta_GMT(-999), eta_LUT_int(-999), 
-      phi_loc_int(-999), phi_loc_deg(-999), phi_loc_rad(-999), phi_glob_deg(-999), phi_glob_rad(-999), 
-      phi_GMT(-999), charge(-999), charge_GMT(-999), isGMT(0),
+    endcap(-999), sector(-999), sector_GMT(-999), type(-999), mode(-999), mode_LUT(-999), quality(-999), 
+      rank(-999), layer(-999), straightness(-999), strip(-999), first_bx(-999), second_bx(-999), 
+      pt(-999), pt_GMT(-999), pt_XML(-999), pt_LUT(0), theta_int(-999), theta_deg(-999), theta_rad(-999), 
+      eta(-999), eta_GMT(-999), eta_LUT(-999), phi_loc_int(-999), phi_loc_deg(-999), phi_loc_rad(-999), 
+      phi_GMT(-999), phi_glob_deg(-999), phi_glob_rad(-999), charge(-999), charge_GMT(-999), isGMT(0),
       dPhi_12(-999), dPhi_13(-999), dPhi_14(-999), dPhi_23(-999), dPhi_24(-999), dPhi_34(-999),
       dTheta_12(-999), dTheta_13(-999), dTheta_14(-999), dTheta_23(-999), dTheta_24(-999), dTheta_34(-999),
       clct_1(-999), clct_2(-999), clct_3(-999), clct_4(-999), fr_1(-999), fr_2(-999), fr_3(-999), fr_4(-999),
+      me1_sector(-99), me1_subsector(-99), me1_CSC_ID(-99), me1_neighbor(-99), me2_sector(-99),
+      me2_CSC_ID(-99), me2_neighbor(-99), me3_sector(-99), me3_CSC_ID(-99), me3_neighbor(-99),
+      me4_sector(-99), me4_CSC_ID(-99), me4_neighbor(-99), 
       numHits(0)
 	{};
     
@@ -30,7 +34,29 @@ namespace l1t {
 
     float pi = 3.141592653589793238;
 
-    std::vector<int> Convert_pT_LUT(int _mode, unsigned long _address);
+    void Import_pT_LUT(int _mode, unsigned long _address);
+    void ImportSP ( const emtf::SP _SP, int _sector );
+
+    // phi_local gives the exact phi value (marked "phi_full" in the format document)                                                            
+    // phi_GMT (the value used by GMT) is a rough estimate, with offsets of 1-2 degrees for some phi values                                      
+    // The conversion used is: phi_GMT =        (360/576)*phi_GMT_int +        (180/576)                                                         
+    // More accurate would be: phi_GMT = 1.0208*(360/576)*phi_GMT_int + 1.0208*(180/576) + 0.552                                                 
+    float calc_pt(int bits)                    { return (bits - 1) * 0.5;                                  }
+    int   calc_pt_GMT(float val)               { return (val * 2) + 1;                                     }
+    float calc_eta(int bits)                   { return bits * 0.010875;                                   }
+    int   calc_eta_GMT(float val)              { return val / 0.010875;                                    }
+    float calc_theta_deg(float _eta)           { return 2*atan( exp(-1*_eta) ) * (180/pi);                 }
+    float calc_theta_rad(float _eta)           { return 2*atan( exp(-1*_eta) );                            }
+    float calc_phi_loc_deg(int bits)           { return (bits / 60.0) - 2.0;                               }
+    float calc_phi_loc_rad(int bits)           { return (bits * pi / 10800) - (pi / 90);                   }
+    int   calc_phi_loc_int(float val)          { return (val + 2) * 60;                                    }
+    float calc_phi_GMT_deg(int bits)           { return (bits * 0.625) + 0.3125;                           } /* x (360/576) + (180/576) */
+    float calc_phi_GMT_deg_corr(int bits)      { return (bits * 0.625 * 1.0208) + 0.3125 * 1.0208 + 0.552; } /* AWB mod 09.02.16 */
+    float calc_phi_GMT_rad(int bits)           { return (bits * pi / 288) + (pi / 576);                    } /* x (2*pi/576) + (pi/576) */
+    int   calc_phi_GMT_int(float val)          { return (val - 0.3125) / 0.625;                            } /* - (180/576) / (360/576) */
+    float calc_phi_glob_deg(float loc, int sect) { float tmp = loc + 15 + (sect - 1)*60; return (tmp < 180) ? tmp : tmp - 360; }
+    float calc_phi_glob_rad(float loc, int sect) { float tmp = loc + (pi/12) + (sect - 1)*(pi/3); return (tmp < pi) ? tmp : tmp - 2*pi; }
+    
 
     void set_Hits(EMTFHitCollection bits)       { _Hits = bits;                numHits = _Hits.size(); }
     void push_Hit(EMTFHit bits)                 { _Hits.push_back(bits);       numHits = _Hits.size(); }
@@ -69,13 +95,13 @@ namespace l1t {
     void set_theta_rad     (float val) { theta_rad    = val;  }
     void set_eta           (float val) { eta          = val;  }
     void set_eta_GMT       (int  bits) { eta_GMT      = bits; }
-    void set_eta_LUT_int   (int  bits) { eta_LUT_int  = bits; }
+    void set_eta_LUT       (int  bits) { eta_LUT      = bits; }
     void set_phi_loc_int   (int  bits) { phi_loc_int  = bits; }
     void set_phi_loc_deg   (float val) { phi_loc_deg  = val;  }
     void set_phi_loc_rad   (float val) { phi_loc_rad  = val;  }
+    void set_phi_GMT       (int  bits) { phi_GMT      = bits; }
     void set_phi_glob_deg  (float val) { (val < 180) ? phi_glob_deg = val : phi_glob_deg = val - 360;  }
     void set_phi_glob_rad  (float val) { (val < pi ) ? phi_glob_rad = val : phi_glob_rad = val - 2*pi; }
-    void set_phi_GMT       (int  bits) { phi_GMT      = bits; }
     void set_charge        (int  bits) { charge       = bits; }
     void set_charge_GMT    (int  bits) { charge_GMT   = bits; }
     void set_isGMT         (int  bits) { isGMT        = bits; }
@@ -99,6 +125,19 @@ namespace l1t {
     void set_fr_2          (int  bits) { fr_2         = bits; }
     void set_fr_3          (int  bits) { fr_3         = bits; }
     void set_fr_4          (int  bits) { fr_4         = bits; }
+    void set_me1_sector    (int  bits) { me1_sector   = bits; }
+    void set_me1_subsector (int  bits) { me1_subsector= bits; }
+    void set_me1_CSC_ID    (int  bits) { me1_CSC_ID   = bits; }
+    void set_me1_neighbor  (int  bits) { me1_neighbor = bits; }
+    void set_me2_sector    (int  bits) { me2_sector   = bits; }
+    void set_me2_CSC_ID    (int  bits) { me2_CSC_ID   = bits; }
+    void set_me2_neighbor  (int  bits) { me2_neighbor = bits; }
+    void set_me3_sector    (int  bits) { me3_sector   = bits; }
+    void set_me3_CSC_ID    (int  bits) { me3_CSC_ID   = bits; }
+    void set_me3_neighbor  (int  bits) { me3_neighbor = bits; }
+    void set_me4_sector    (int  bits) { me4_sector   = bits; }
+    void set_me4_CSC_ID    (int  bits) { me4_CSC_ID   = bits; }
+    void set_me4_neighbor  (int  bits) { me4_neighbor = bits; }
     
     
     int   Endcap()        const { return  endcap;       }
@@ -123,13 +162,13 @@ namespace l1t {
     float Theta_rad()     const { return  theta_rad;    }
     float Eta()           const { return  eta;          }
     int   Eta_GMT()       const { return  eta_GMT;      }
-    int   Eta_LUT_int()   const { return  eta_LUT_int;  }
+    int   Eta_LUT()       const { return  eta_LUT;      }
     int   Phi_loc_int()   const { return  phi_loc_int;  }
     float Phi_loc_deg()   const { return  phi_loc_deg;  }
     float Phi_loc_rad()   const { return  phi_loc_rad;  }
+    int   Phi_GMT()       const { return  phi_GMT;      }
     float Phi_glob_deg()  const { return  phi_glob_deg; }
     float Phi_glob_rad()  const { return  phi_glob_rad; }
-    int   Phi_GMT()       const { return  phi_GMT;      }
     int   Charge()        const { return  charge;       }
     int   Charge_GMT()    const { return  charge_GMT;   }
     int   IsGMT()         const { return  isGMT;        }
@@ -153,7 +192,19 @@ namespace l1t {
     int   FR_2()          const { return fr_2;          }
     int   FR_3()          const { return fr_3;          }
     int   FR_4()          const { return fr_4;          }
-
+    int   ME1_sector()    const { return me1_sector;    }
+    int   ME1_subsector() const { return me1_subsector; }
+    int   ME1_CSC_ID()    const { return me1_CSC_ID;    }
+    int   ME1_neighbor()  const { return me1_neighbor;  }
+    int   ME2_sector()    const { return me2_sector;    }
+    int   ME2_CSC_ID()    const { return me2_CSC_ID;    }
+    int   ME2_neighbor()  const { return me2_neighbor;  }
+    int   ME3_sector()    const { return me3_sector;    }
+    int   ME3_CSC_ID()    const { return me3_CSC_ID;    }
+    int   ME3_neighbor()  const { return me3_neighbor;  }
+    int   ME4_sector()    const { return me4_sector;    }
+    int   ME4_CSC_ID()    const { return me4_CSC_ID;    }
+    int   ME4_neighbor()  const { return me4_neighbor;  }
     
     
   private:
@@ -188,13 +239,13 @@ namespace l1t {
     float theta_rad;    //  ? -  ?.  Filled in emulator.
     float eta;          //  ? -  ?.  Filled in emulator.
     int   eta_GMT;      //  ? -  ?.  Filled in emulator.
-    int   eta_LUT_int;  //  ? -  ?.  Filled in emulator.
+    int   eta_LUT;      //  ? -  ?.  Filled in emulator.
     int   phi_loc_int;  //  ? -  ?.  Filled in emulator.
     float phi_loc_deg;  //  ? -  ?.  Filled in emulator.
     float phi_loc_rad;  //  ? -  ?.  Filled in emulator.
+    int   phi_GMT;      //  ? -  ?.  Filled in emulator.
     float phi_glob_deg; //  ? -  ?.  Filled in emulator.
     float phi_glob_rad; //  ? -  ?.  Filled in emulator.
-    int   phi_GMT;      //  ? -  ?.  Filled in emulator.
     int   charge;       // -1 or 1.  Filled in emulator.
     int   charge_GMT;   //  0 or 1.  Filled in emulator.
     int   isGMT;        //  0 or 1.  Filled in emulator.
@@ -218,7 +269,21 @@ namespace l1t {
     int   fr_2;
     int   fr_3;
     int   fr_4;
+    int   me1_sector; 
+    int   me1_subsector; 
+    int   me1_CSC_ID; 
+    int   me1_neighbor; 
+    int   me2_sector;
+    int   me2_CSC_ID; 
+    int   me2_neighbor; 
+    int   me3_sector; 
+    int   me3_CSC_ID; 
+    int   me3_neighbor;
+    int   me4_sector; 
+    int   me4_CSC_ID; 
+    int   me4_neighbor; 
     int   numHits;
+
     
   }; // End of class EMTFTrack
   

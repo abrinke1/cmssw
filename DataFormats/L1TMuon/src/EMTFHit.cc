@@ -46,4 +46,23 @@ namespace l1t {
 
   } // End EMTFHit::ImportCSCCorrelatedLCTDigi
 
+  void EMTFHit::ImportME( const emtf::ME _ME) {
+
+    set_wire       ( _ME.Wire() );
+    set_strip      ( _ME.Strip() );
+    set_quality    ( _ME.Quality() );
+    set_pattern    ( _ME.CLCT_pattern() );
+    set_bend       ( (_ME.LR() == 1) ? 1 : -1 );
+    set_valid      ( _ME.VP() );
+    set_sync_err   ( _ME.SE() );
+    set_bx         ( _ME.TBIN() - 3 );
+    set_is_CSC_hit ( true  );
+    set_is_RPC_hit ( false );
+
+    // set_sector_GMT();
+    // set_chamber();
+    // set_layer();
+
+  } // End EMTFHit::ImportME
+
 } // End namespace l1t
