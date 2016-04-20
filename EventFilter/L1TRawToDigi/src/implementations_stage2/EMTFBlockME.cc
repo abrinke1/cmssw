@@ -58,6 +58,28 @@ namespace l1t {
 
       }
 
+      // Converts station, CSC_ID, sector, subsector, and neighbor from the ME output
+      std::vector<int> convert_ME_location(int _station, int _csc_ID, int _sector) {
+	int new_sector = _sector;
+	int new_csc_ID = _csc_ID+1; // Shift from 0,1,2... convention to 1,2,3...
+	if      (_station == 0) { int arr[] = {       1, new_csc_ID, new_sector,  1, 0}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (_station == 1) { int arr[] = {       1, new_csc_ID, new_sector,  2, 0}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (_station <= 4) { int arr[] = {_station, new_csc_ID, new_sector, -1, 0}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (_station == 5) new_sector = (_sector != 1) ? _sector-1 : 6;
+	else { int arr[] = {_station, new_csc_ID, _sector, -99, -99}; std::vector<int> vec(arr, arr+5); return vec; }
+	
+	if      (new_csc_ID == 1) { int arr[] = {1, 3, new_sector,  2, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (new_csc_ID == 2) { int arr[] = {1, 6, new_sector,  2, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (new_csc_ID == 3) { int arr[] = {1, 9, new_sector,  2, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (new_csc_ID == 4) { int arr[] = {2, 3, new_sector, -1, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (new_csc_ID == 5) { int arr[] = {2, 9, new_sector, -1, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (new_csc_ID == 6) { int arr[] = {3, 3, new_sector, -1, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (new_csc_ID == 7) { int arr[] = {3, 9, new_sector, -1, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (new_csc_ID == 8) { int arr[] = {4, 3, new_sector, -1, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else if (new_csc_ID == 9) { int arr[] = {4, 9, new_sector, -1, 1}; std::vector<int> vec(arr, arr+5); return vec; }
+	else                   { int arr[] = {_station, new_csc_ID, new_sector, -99, -99}; std::vector<int> vec(arr, arr+5); return vec; }
+      }
+
 
       bool MEBlockUnpacker::unpack(const Block& block, UnpackerCollections *coll) {
 
@@ -83,7 +105,11 @@ namespace l1t {
 	EMTFOutputCollection* res;
 	res = static_cast<EMTFCollections*>(coll)->getEMTFOutputs();
 	int iOut = res->size() - 1;
-	std::vector<int> conv_vals_ME;
+
+	EMTFHitCollection* res_hit;
+	res_hit = static_cast<EMTFCollections*>(coll)->getEMTFHits();
+	EMTFHit Hit_;
+
 	// if (ME_.Format_Errors() > 0) goto write; // Temporarily disable for DQM operation - AWB 09.04.16
 
 	////////////////////////////
@@ -105,7 +131,7 @@ namespace l1t {
 	ME_.set_cik          ( GetHexBits(MEc, 13, 13) );
 	ME_.set_afff         ( GetHexBits(MEc, 14, 14) );
 
-	ME_.set_tbin_num     ( GetHexBits(MEd,  0,  2) );
+	ME_.set_tbin         ( GetHexBits(MEd,  0,  2) );
 	ME_.set_vp           ( GetHexBits(MEd,  3,  3) );
 	ME_.set_station      ( GetHexBits(MEd,  4,  6) );
 	ME_.set_af           ( GetHexBits(MEd,  7,  7) );
@@ -116,32 +142,43 @@ namespace l1t {
 
 	// ME_.set_dataword     ( uint64_t dataword);
 
+	
+	// Fill the EMTFHit
+	Hit_.ImportME( ME_ );
+	Hit_.set_endcap ( ((res->at(iOut)).PtrEventHeader()->Endcap() == 1) ? 1 : -1 );
+	Hit_.set_sector ( (res->at(iOut)).PtrEventHeader()->Sector() );
+	// Hit_.set_chamber();
+	// Hit_.set_layer();
+	
 	// After 01.04.16
 	// std::cout << "About to convert values station = " << ME_.Station() << ", CSC ID = " 
-		  // << ME_.CSC_ID() << ", sector = " << (res->at(iOut)).PtrEventHeader()->Sector() << std::endl;
-	conv_vals_ME = ME_.convert_chamber_ME( ME_.Station(), ME_.CSC_ID(), (res->at(iOut)).PtrEventHeader()->Sector() );
-	ME_.set_station   ( conv_vals_ME.at(0) );
-	ME_.set_csc_ID    ( conv_vals_ME.at(1) );
-	ME_.set_sector    ( conv_vals_ME.at(2) );
-	ME_.set_subsector ( conv_vals_ME.at(3) );
-	ME_.set_neighbor  ( conv_vals_ME.at(4) );
-	// std::cout << "Got converted values station = " << ME_.Station() << ", CSC ID = " << ME_.CSC_ID() 
-		  // << ", sector = " << ME_.Sector() << ", subsector = " << ME_.Subsector() << ", neighbor = " << ME_.Neighbor() << std::endl;
+	// << ME_.CSC_ID() << ", sector = " << (res->at(iOut)).PtrEventHeader()->Sector() << std::endl;
+	std::vector<int> conv_vals = convert_ME_location( ME_.Station(), ME_.CSC_ID(), 
+							  (res->at(iOut)).PtrEventHeader()->Sector() );
+	Hit_.set_station   ( conv_vals.at(0) );
+	Hit_.set_csc_ID    ( conv_vals.at(1) );
+	Hit_.set_sector    ( conv_vals.at(2) );
+	Hit_.set_subsector ( conv_vals.at(3) );
+	Hit_.set_neighbor  ( conv_vals.at(4) );
+	// std::cout << "Got converted values station = " << Hit_.Station() << ", CSC ID = " << Hit_.CSC_ID() 
+	// << ", sector = " << Hit_.Sector() << ", subsector = " << Hit_.Subsector() << ", neighbor = " << Hit_.Neighbor() << std::endl;
+	
+	Hit_.set_sector_GMT ( (res->at(iOut)).PtrEventHeader()->SP_TS() );
+	Hit_.set_ring       ( Hit_.calc_ring( Hit_.Station(), Hit_.CSC_ID(), Hit_.Strip() ) );
+	// std::cout << "From strip = " << Hit_.Strip() << " got ring = " << Hit_.Ring() << std::endl;
 
-	ME_.set_ring ( ME_.calc_ring_ME( ME_.Station(), ME_.CSC_ID(), ME_.Strip() ) );
-	// std::cout << "From strip = " << ME_.Strip() << " got ring = " << ME_.Ring() << std::endl;
-
+	// Set the stub number for this ME
+	// Does this work for neighbor hits (station 5)? - AWB 20.04.16
 	if ( (res->at(iOut)).NumME() > 0 )
-	  if (ME_.Station() == (res->at(iOut)).PtrMECollection()->at( (res->at(iOut)).NumME() - 1 ).Station() )
+	  if ( ME_.Station() == (res->at(iOut)).PtrMECollection()->at( (res->at(iOut)).NumME() - 1 ).Station() )
 	    ME_.set_stub_num( (res->at(iOut)).PtrMECollection()->at( (res->at(iOut)).NumME() - 1 ).Stub_num() + 1 );
 	  else ME_.set_stub_num(0);
 	else ME_.set_stub_num(0);
-	if (ME_.Station() < 0) ME_.set_stub_num(-99);
-	      
 
 	// write: // Temporarily disable for DQM operation - AWB 09.04.16
 
 	(res->at(iOut)).push_ME(ME_);
+	res_hit->push_back(Hit_);
 
 	// Finished with unpacking one ME Data Record
 	return true;
