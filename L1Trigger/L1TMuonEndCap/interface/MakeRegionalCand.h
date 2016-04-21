@@ -88,20 +88,22 @@ l1t::RegionalMuonCand MakeRegionalCand(float pt, int phi, int theta,
 		iPt = 0;
 
 	int iQual = quality;
-	
-	int LSB = quality & 3;
+	// // What's this doing? Just confuses things. - AWB 21.04.16
+	// int LSB = quality & 3;
 	
 	float eta = GetGlobalEta(theta,sector);
-	
-	int RTM = 0;
-	if(quality & 32)
-		RTM |= 8;
-	if(quality & 8)
-		RTM |= 4;
-	if(quality & 2)
-		RTM |= 2;
-	if(quality & 1)
-		RTM |= 1;
+	// // What's this doing? Just confuses things. - AWB 21.04.16
+	// int RTM = 0;
+	// if(quality & 32)
+	//	RTM |= 8;
+	// if(quality & 8)
+	//	RTM |= 4;
+	// if(quality & 2)
+	//	RTM |= 2;
+	// if(quality & 1)
+	//	RTM |= 1;
+	// Switched to redundant / tautological - but correct - definition. - AWB 21.04.16
+	int RTM = quality;
 	
 	if(eta < 1.2){
 	
@@ -129,7 +131,8 @@ l1t::RegionalMuonCand MakeRegionalCand(float pt, int phi, int theta,
 		}
 	
 	}
-	iQual |= LSB;
+	// // What's this doing? Just confuses things. - AWB 21.04.16
+	// iQual |= LSB;
 
 	Cand.setHwPt(iPt);
 	Cand.setHwEta(iEta);
