@@ -422,14 +422,14 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 
 		unsigned long xmlpt_address = 0;
 		float xmlpt = CalculatePt(tempTrack, es, mode, &xmlpt_address);
-		tempTrack.pt = xmlpt*1.4;
+		tempTrack.pt = xmlpt;
 		//FoundTracks->push_back(tempTrack);
 
 		CombAddress = (me2address<<4) | me1address;
 
 		int charge = getCharge(phis[0],phis[1],phis[2],phis[3],mode);
 
-		l1t::RegionalMuonCand outCand = MakeRegionalCand(xmlpt*1.4,AllTracks[fbest].phi,AllTracks[fbest].theta,
+		l1t::RegionalMuonCand outCand = MakeRegionalCand(xmlpt,AllTracks[fbest].phi,AllTracks[fbest].theta,
 								 charge,mode,CombAddress,sector);
         // NOTE: assuming that all candidates come from the central BX:
         //int bx = 0;
@@ -446,7 +446,7 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 		thisTrack.set_second_bx  ( sebx            ); 
 		thisTrack.set_phis       ( ps              );
 		thisTrack.set_thetas     ( ts              );
-		thisTrack.set_pt         ( xmlpt*1.4       );
+		thisTrack.set_pt         ( xmlpt           );
 		thisTrack.set_pt_XML     ( xmlpt           );
 		thisTrack.set_pt_LUT     ( xmlpt_address   );
 		thisTrack.set_charge     ( (charge == 1) ? 1 : -1 );
