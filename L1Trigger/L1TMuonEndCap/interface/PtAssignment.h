@@ -1459,7 +1459,7 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
       
       // Make Pt LUT Address
       int dPhi13_ = fabs(dPhi13);
-      int sign13_ = dPhi13Sign > 0 ? 1 : 0;
+      int sign13_ = dPhi13Sign > 0 ? 0 : 1;
       int dTheta13_ = getdTheta(dTheta13);
       int CLCT1_ = getCLCT(CLCT1);
       int CLCT1Sign_ = CLCT1Sign > 0 ? 1 : 0;
@@ -1500,7 +1500,7 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
       
       // Make Pt LUT Address
       int dPhi14_ = fabs(dPhi14);
-      int sign14_ = dPhi14Sign > 0 ? 1 : 0;
+      int sign14_ = dPhi14Sign > 0 ? 0 : 1;
       int dTheta14_ = getdTheta(dTheta14);
       int CLCT1_ = getCLCT(CLCT1);
       int CLCT1Sign_ = CLCT1Sign > 0 ? 1 : 0;
@@ -1538,7 +1538,7 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
       
       // Make Pt LUT Address
       int dPhi23_ = fabs(dPhi23);
-      int sign23_ = dPhi23Sign > 0 ? 1 : 0;
+      int sign23_ = dPhi23Sign > 0 ? 0 : 1;
       int dTheta23_ = getdTheta(dTheta23);
       int CLCT2_ = getCLCT(CLCT2);
       int CLCT2Sign_ = CLCT2Sign > 0 ? 1 : 0;
@@ -1576,7 +1576,7 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
       
       // Make Pt LUT Address
       int dPhi24_ = fabs(dPhi24);
-      int sign24_ = dPhi24Sign > 0 ? 1 : 0;
+      int sign24_ = dPhi24Sign > 0 ? 0 : 1;
       int dTheta24_ = getdTheta(dTheta24);
       int CLCT2_ = getCLCT(CLCT2);
       int CLCT2Sign_ = CLCT2Sign > 0 ? 1 : 0;
@@ -1613,7 +1613,7 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
       
       // Make Pt LUT Address
       int dPhi34_ = fabs(dPhi34);
-      int sign34_ = dPhi34Sign > 0 ? 1 : 0;
+      int sign34_ = dPhi34Sign > 0 ? 0 : 1;
       int dTheta34_ = getdTheta(dTheta34);
       int CLCT3_ = getCLCT(CLCT3);
       int CLCT3Sign_ = CLCT3Sign > 0 ? 1 : 0;
@@ -1688,10 +1688,10 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
       if (CLCT1<0) CLCT1Sign = -1;
       
       // Make Pt LUT Address
-      int dPhi12_ = getNLBdPhiBin(dPhi12, 7, 512);
+      int dPhi12_ = (getNLBdPhiBin(dPhi12, 7, 512)) & 31;
       int dPhi24_ = getNLBdPhiBin(dPhi24, 5, 256);
-      int sign12_ = dPhi12Sign > 0 ? 1 : 0;
-      int sign24_ = dPhi24Sign > 0 ? 1 : 0;
+      int sign12_ = dPhi12Sign > 0 ? 0 : 1;
+      int sign24_ = dPhi24Sign > 0 ? 0 : 1;
       int dTheta14_ = getdTheta(dTheta14);
       int CLCT1_ = getCLCT(CLCT1);
       int CLCT1Sign_ = CLCT1Sign > 0 ? 1 : 0;
@@ -1722,10 +1722,10 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
       if (CLCT1<0) CLCT1Sign = -1;
       
       // Make Pt LUT Address
-      int dPhi13_ = getNLBdPhiBin(dPhi13, 7, 512);
+      int dPhi13_ = (getNLBdPhiBin(dPhi13, 7, 512)) & 31;
       int dPhi34_ = getNLBdPhiBin(dPhi34, 5, 256);
-      int sign13_ = dPhi13Sign > 0 ? 1 : 0;
-      int sign34_ = dPhi34Sign > 0 ? 1 : 0;
+      int sign13_ = dPhi13Sign > 0 ? 0 : 1;
+      int sign34_ = dPhi34Sign > 0 ? 0 : 1;
       int dTheta14_ = getdTheta(dTheta14);
       int CLCT1_ = getCLCT(CLCT1);
       int CLCT1Sign_ = CLCT1Sign > 0 ? 1 : 0;
@@ -1759,10 +1759,10 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
       if (CLCT2<0) CLCT2Sign = -1;
       
       // Make Pt LUT Address
-      int dPhi23_ = getNLBdPhiBin(dPhi23, 7, 512);
-      int dPhi34_ = getNLBdPhiBin(dPhi34, 6, 256);
-      int sign23_ = dPhi23Sign > 0 ? 1 : 0;
-      int sign34_ = dPhi34Sign > 0 ? 1 : 0;
+      int dPhi23_ = (getNLBdPhiBin(dPhi23, 7, 512)) & 31;
+      int dPhi34_ = (getNLBdPhiBin(dPhi34, 6, 256)) & 31;
+      int sign23_ = dPhi23Sign > 0 ? 0 : 1;
+      int sign34_ = dPhi34Sign > 0 ? 0 : 1;
       int dTheta24_ = getdTheta(dTheta24);
       int CLCT2_ = getCLCT(CLCT2);
       int CLCT2Sign_ = CLCT2Sign > 0 ? 1 : 0;
@@ -1784,23 +1784,14 @@ float CalculatePt(L1TMuon::InternalTrack track , const edm::EventSetup& es, int 
   if (doComp && mode_inv==15) // 1-2-3-4
     {
 	
-      int dPhi12Sign = 1;
+      // int dPhi12Sign = 1;
       int dPhi23Sign = 1;
       int dPhi34Sign = 1;
       
-      if (dPhi12<0) dPhi12Sign = -1;
+      // if (dPhi12<0) dPhi12Sign = -1;
       if (dPhi23<0) dPhi23Sign = -1;
       if (dPhi34<0) dPhi34Sign = -1;
-      
-      if (dPhi12Sign==-1 && dPhi23Sign==-1 && dPhi34Sign==-1)
-        { dPhi12Sign=1;dPhi23Sign=1;dPhi34Sign=1;}
-      else if (dPhi12Sign==-1 && dPhi23Sign==1 && dPhi34Sign==1)
-        { dPhi12Sign=1;dPhi23Sign=-1;dPhi34Sign=-1;}
-      else if (dPhi12Sign==-1 && dPhi23Sign==-1 && dPhi34Sign==1)
-        { dPhi12Sign=1;dPhi23Sign=1;dPhi34Sign=-1;}
-      else if (dPhi12Sign==-1 && dPhi23Sign==1 && dPhi34Sign==-1)
-        { dPhi12Sign=1;dPhi23Sign=-1;dPhi34Sign=1;}
-      
+
       // Make Pt LUT Address
       int dPhi12_ = (getNLBdPhiBin(dPhi12, 7, 512)) & 31;
 	  //std::cout<<"dphi12 = "<<dPhi12_<<"\n";
