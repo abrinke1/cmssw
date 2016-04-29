@@ -47,6 +47,7 @@ namespace l1t {
 	prod.produces<EMTFOutputCollection>();
 	prod.produces<EMTFHitCollection>();
 	prod.produces<EMTFTrackCollection>();
+	prod.produces<CSCCorrelatedLCTDigiCollection>();
       };
       
       // Not sure what this function does - AWB 27.01.16

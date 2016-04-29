@@ -10,6 +10,7 @@ namespace l1t {
       event_.put(EMTFOutputs_);
       event_.put(EMTFHits_);
       event_.put(EMTFTracks_);
+      event_.put(EMTFLCTs_);
     }
   }
 }

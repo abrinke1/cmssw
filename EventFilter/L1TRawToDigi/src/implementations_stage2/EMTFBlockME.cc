@@ -110,6 +110,9 @@ namespace l1t {
 	res_hit = static_cast<EMTFCollections*>(coll)->getEMTFHits();
 	EMTFHit Hit_;
 
+	CSCCorrelatedLCTDigiCollection* res_LCT;
+	res_LCT = static_cast<EMTFCollections*>(coll)->getEMTFLCTs();
+
 	// if (ME_.Format_Errors() > 0) goto write; // Temporarily disable for DQM operation - AWB 09.04.16
 
 	////////////////////////////
@@ -161,6 +164,11 @@ namespace l1t {
 	
 	Hit_.set_sector_GMT ( (res->at(iOut)).PtrEventHeader()->SP_TS() );
 	Hit_.set_ring       ( Hit_.calc_ring( Hit_.Station(), Hit_.CSC_ID(), Hit_.Strip() ) );
+	Hit_.set_chamber    ( Hit_.calc_chamber( Hit_.Station(), Hit_.Sector(), 
+						 Hit_.Subsector(), Hit_.Ring(), Hit_.CSC_ID() ) );
+
+	Hit_.SetCSCDetId   ( Hit_.CreateCSCDetId() );
+	Hit_.SetCSCLCTDigi ( Hit_.CreateCSCCorrelatedLCTDigi() );
 
 	// Set the stub number for this ME
 	// Does this work for neighbor hits (station 5)? - AWB 20.04.16
@@ -174,6 +182,7 @@ namespace l1t {
 
 	(res->at(iOut)).push_ME(ME_);
 	res_hit->push_back(Hit_);
+	res_LCT->insertDigi( Hit_.CSC_DetId(), Hit_.CSC_LCTDigi() );
 
 	// Finished with unpacking one ME Data Record
 	return true;

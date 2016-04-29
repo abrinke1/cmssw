@@ -27,7 +27,7 @@ namespace l1t {
       phi_loc_rad(-999), phi_glob_deg(-999), phi_glob_rad(-999), phi_geom_rad(-999),
       theta_int(-999), theta_loc(-999), theta_deg(-999), theta_rad(-999), eta(-999), 
       quality(-999), pattern(-999), bend(-999), valid(-999), sync_err(-999), 
-      bx0(-999), bx(-999), is_CSC_hit(false), is_RPC_hit(false)
+      bc0(-999), bx0(-999), bx(-999), is_CSC_hit(false), is_RPC_hit(false)
       {};
     
     virtual ~EMTFHit() {};
@@ -35,41 +35,33 @@ namespace l1t {
     float pi = 3.141592653589793238;
 
     // Functions defined in src/EMTFHit.cc
-    void ImportCSCDetId ( const CSCDetId& _detId);
-    void ImportCSCCorrelatedLCTDigi ( const CSCCorrelatedLCTDigi& _digi);
-    void ImportME ( const emtf::ME _ME );
+    void ImportCSCDetId (const CSCDetId& _detId);
+    CSCDetId CreateCSCDetId();
+    void ImportCSCCorrelatedLCTDigi (const CSCCorrelatedLCTDigi& _digi);
+    CSCCorrelatedLCTDigi CreateCSCCorrelatedLCTDigi();
+    void ImportME (const emtf::ME _ME );
+    int  calc_ring (int _station, int _csc_ID, int _strip);
+    int  calc_chamber (int _station, int _sector, int _subsector, int _ring, int _csc_ID);
 
     void SetZoneContribution (std::vector<int> vect_ints)  { zone_contribution = vect_ints; }
     void SetCSCDetId         (CSCDetId id)                 { csc_DetId         = id;        }
+    void SetCSCLCTDigi       (CSCCorrelatedLCTDigi digi)   { csc_LCTDigi       = digi;      }
     
-    std::vector<int> Zone_contribution () const { return zone_contribution; }
-    CSCDetId CSC_DetId                 () const { return csc_DetId;         }
+    std::vector<int> Zone_contribution          () const { return zone_contribution; }
+    CSCDetId CSC_DetId                          () const { return csc_DetId;    }
+    CSCCorrelatedLCTDigi CSC_LCTDigi            () const { return csc_LCTDigi;  }
+    const CSCDetId * PtrCSC_DetId               () const { return &csc_DetId;   }
+    const CSCCorrelatedLCTDigi * PtrCSC_LCTDigi () const { return &csc_LCTDigi; }
 
-    int calc_sector_GMT (int _endcap, int _sector) { return (_endcap == 1) ? _sector - 1 : _sector + 5; }
-    int calc_subsector  (int _station, int _chamber ) {                // Why does emulator have csc_ID dependence? - AWB 11.04.16
-      if ( _station == 1 ) return (( (_chamber-1) % 6 ) > 2) ? 1 : 2;  // if(station == 1 && id > 3 && id < 7) - AWB 11.04.16
-      else if ( _station < 0 || _chamber < 0 ) return -999;            // Also, is this correct for chambers 1 - 36, vs. 0 - 35? - AWB 11.04.16
-      else return 0; }                                                // Here, corrected by adding "-1" to "_chamber" - AWB 11.04.16
+    int calc_sector_GMT  (int _endcap, int _sector) { return (_endcap == 1) ? _sector - 1 : _sector + 5; }
+    int calc_subsector   (int _station, int _chamber ) {           // Why does emulator have the following csc_ID dependence? - AWB 11.04.16
+      if ( _station == 1 ) return ( (_chamber % 6) > 2 ) ? 1 : 2;  // "if(station == 1 && id > 3 && id < 7)" - AWB 11.04.16
+      else if ( _station < 0 || _chamber < 0 ) return -999;        // Function works because first 3 chambers in sector 1 are 3/4/5,
+      else return -1; }                                            // while the last 3 in sector 6 are 36/1/2
     float calc_theta_deg (int _theta_int) { return _theta_int * 0.2851562 + 8.5; }
     float calc_theta_rad (int _theta_int) { return (_theta_int * 0.2851562 + 8.5) * (pi / 180); }
     float calc_eta     (float _theta_rad) { return -1 * log( tan( _theta_rad / 2 ) ); }
 
-    // Calculates ring value                                                                                                                     
-    int calc_ring(int _station, int _csc_ID, int _strip) {
-      if (_station > 1) {
-	if      (_csc_ID <  4) return 1;
-	else if (_csc_ID < 10) return 2;
-	else return -99;
-      }
-      else if (_station == 1) {
-	if      (_csc_ID < 4 && _strip > 127) return 4;
-	else if (_csc_ID < 4 && _strip >=  0) return 1;
-	else if (_csc_ID > 3 && _csc_ID <  7) return 2;
-	else if (_csc_ID > 6 && _csc_ID < 10) return 3;
-	else return -99;
-      }
-      else return -99;
-    }
     
     void set_endcap         (int  bits) { endcap        = bits; }
     void set_station        (int  bits) { station       = bits; }
@@ -104,6 +96,7 @@ namespace l1t {
     void set_bend           (int  bits) { bend          = bits; }
     void set_valid          (int  bits) { valid         = bits; }
     void set_sync_err       (int  bits) { sync_err      = bits; }
+    void set_bc0            (int  bits) { bc0           = bits; }
     void set_bx0            (int  bits) { bx0           = bits; }
     void set_bx             (int  bits) { bx            = bits; }
     void set_is_CSC_hit     (bool expr) { is_CSC_hit    = expr; }
@@ -142,6 +135,7 @@ namespace l1t {
     int   Bend           ()  const { return bend     ;      }
     int   Valid          ()  const { return valid    ;      }
     int   Sync_err       ()  const { return sync_err ;      }
+    int   BC0            ()  const { return bc0      ;      }
     int   BX0            ()  const { return bx0      ;      }
     int   BX             ()  const { return bx       ;      }
     bool  Is_CSC_hit     ()  const { return is_CSC_hit;     }
@@ -152,6 +146,7 @@ namespace l1t {
     
     std::vector<int> zone_contribution; // Filled in emulator from ConvertedHit.ZoneContribution()
     CSCDetId csc_DetId;
+    CSCCorrelatedLCTDigi csc_LCTDigi;
     
     int   endcap;       // -1 or 1.  Filled in EMTFHit.cc from CSCDetId, modified
     int   station;      //  1 -  4.  Filled in EMTFHit.cc from CSCDetId
@@ -186,8 +181,9 @@ namespace l1t {
     int   bend;         //  0 or 1.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
     int   valid;        //  0 or 1.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
     int   sync_err;     //  0 or 1.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   bc0;          //  0 or 1.
     int   bx0;          //  1-3600.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
-    int   bx;           //  3 -  9.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
+    int   bx;           //  -3 - 3.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
     bool  is_CSC_hit;   //  0 or 1.  Filled in EMTFHit.cc
     bool  is_RPC_hit;   //  0 or 1.  Filled in EMTFHit.cc
 

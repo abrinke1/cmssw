@@ -12,9 +12,10 @@ namespace l1t {
       auto tag = cfg.getParameter<edm::InputTag>("InputLabel");
 
       regionalMuonCandToken_ = cc.consumes<RegionalMuonCandBxCollection>(tag);
-      EMTFOutputToken_   = cc.consumes<EMTFOutputCollection>(tag);
-      EMTFHitToken_   = cc.consumes<EMTFHitCollection>(tag);
-      EMTFTrackToken_   = cc.consumes<EMTFTrackCollection>(tag);
+      EMTFOutputToken_ = cc.consumes<EMTFOutputCollection>(tag);
+      EMTFHitToken_ = cc.consumes<EMTFHitCollection>(tag);
+      EMTFTrackToken_ = cc.consumes<EMTFTrackCollection>(tag);
+      EMTFLCTToken_ = cc.consumes<CSCCorrelatedLCTDigiCollection>(tag);   
     }
   }
 }

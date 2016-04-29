@@ -9,6 +9,7 @@
 #include "DataFormats/L1TMuon/interface/EMTFOutput.h"
 #include "DataFormats/L1TMuon/interface/EMTFHit.h"
 #include "DataFormats/L1TMuon/interface/EMTFTrack.h"
+#include "DataFormats/CSCDigi/interface/CSCCorrelatedLCTDigiCollection.h"
 
 #include "EventFilter/L1TRawToDigi/interface/UnpackerCollections.h"
 
@@ -21,16 +22,18 @@ namespace l1t {
 	regionalMuonCands_(new RegionalMuonCandBxCollection()),
 	EMTFOutputs_(new EMTFOutputCollection()),
 	EMTFHits_(new EMTFHitCollection()),
-	EMTFTracks_(new EMTFTrackCollection())
+	EMTFTracks_(new EMTFTrackCollection()),
+	EMTFLCTs_(new CSCCorrelatedLCTDigiCollection())
 	  {};
       
       virtual ~EMTFCollections();
       
-      inline RegionalMuonCandBxCollection* getRegionalMuonCands() { return regionalMuonCands_.get(); };
+      inline RegionalMuonCandBxCollection* getRegionalMuonCands() { return regionalMuonCands_.get(); }
       // How does this work?  I haven't even defined a "get()" function for the EMTFOutputCollection. - AWB 28.01.16
-      inline EMTFOutputCollection* getEMTFOutputs() { return EMTFOutputs_.get(); };       
-      inline EMTFHitCollection*    getEMTFHits()    { return EMTFHits_.get();    };       
-      inline EMTFTrackCollection*  getEMTFTracks()  { return EMTFTracks_.get();  };       
+      inline EMTFOutputCollection* getEMTFOutputs() { return EMTFOutputs_.get(); }
+      inline EMTFHitCollection*    getEMTFHits()    { return EMTFHits_.get();    }       
+      inline EMTFTrackCollection*  getEMTFTracks()  { return EMTFTracks_.get();  }       
+      inline CSCCorrelatedLCTDigiCollection* getEMTFLCTs() { return EMTFLCTs_.get(); }
       
     private:
       
@@ -38,6 +41,7 @@ namespace l1t {
       std::auto_ptr<EMTFOutputCollection>         EMTFOutputs_;
       std::auto_ptr<EMTFHitCollection>            EMTFHits_;
       std::auto_ptr<EMTFTrackCollection>          EMTFTracks_;
+      std::auto_ptr<CSCCorrelatedLCTDigiCollection> EMTFLCTs_;
       
     };
   }
