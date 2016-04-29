@@ -41,7 +41,6 @@ using namespace L1TMuon;
 L1TMuonEndCapTrackProducer::L1TMuonEndCapTrackProducer(const PSet& p) {
 
   inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(p.getParameter<edm::InputTag>("CSCInput"));
-  isData = p.getParameter<bool>("isData");
   
   produces<l1t::RegionalMuonCandBxCollection >("EMTF");
   produces< l1t::EMTFTrackCollection >("EMTF");
@@ -339,6 +338,8 @@ for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 se
 				       A->TP().getCSCData().bx - 6         == OutputHits->at(iHit).BX() ) {
 				    thisHit = OutputHits->at(iHit);
 				    thisTrack.push_HitIndex(iHit);
+				    thisTrack.push_Hit(thisHit); // Done before theta windows are applied ... how can we do it after? - AWB 29.04.16
+				    break;
 				  }
 				}
 				thisTrack.set_endcap       ( thisHit.Endcap()     );
