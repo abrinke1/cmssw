@@ -82,6 +82,7 @@ public:
 private:
 
   edm::EDGetTokenT<CSCCorrelatedLCTDigiCollection> inputTokenCSC;
+  int bxShiftCSC = 0;
   l1t::EmtfPtAssignment ptAssignment_;
 
 };
