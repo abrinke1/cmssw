@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "L1Trigger/L1TMuonEndCap/interface/PrimitiveConverter_Neighbor.h"
 #include "L1Trigger/L1TMuonEndCap/interface/BXAnalyzer.h"
 #include "L1Trigger/L1TMuonEndCap/interface/ZoneCreation.h"
 #include "L1Trigger/L1TMuonEndCap/interface/PatternRecognition.h"
@@ -136,7 +135,7 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
     ///////////////// TP Conversion //////////////////////  Output is vector of Converted Hits
     //////////////////////////////////////////////////////
     
-    std::vector<ConvertedHit> ConvHits = PrimConv(tester,SectIndex);
+    std::vector<ConvertedHit> ConvHits = primConv_.convert(tester,SectIndex);
     CHits[SectIndex] = ConvHits;
     
     // Fill OutputHits with ConvertedHit information
