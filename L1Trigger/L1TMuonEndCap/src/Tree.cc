@@ -43,12 +43,11 @@ Tree::Tree(std::vector< std::vector<Event*> >& cEvents)
 // _______________________Destructor____________________________________//
 //////////////////////////////////////////////////////////////////////////
 
-
 Tree::~Tree()
 {
   // When the tree is destroyed it will delete all of the nodes in the tree.
-  // The deletion begins with the rootnode and continues recursively.
-  delete rootNode;
+// The deletion begins with the rootnode and continues recursively.
+    delete rootNode;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -216,6 +215,7 @@ Node* Tree::filterEventRecursive(Node* node, Event* e)
   // Filter the event repeatedly into the daughter nodes until it
   // falls into a terminal node.
   
+  
   Node* nextNode = node->filterEventToDaughter(e);
   if(nextNode == 0) return node;
   
@@ -240,12 +240,12 @@ void Tree::rankVariablesRecursive(Node* node, std::vector<Double_t>& v)
   Int_t sv =  node->getSplitVariable();
   Double_t er = node->getErrorReduction();
   
-  if(sv == -1)
-    {
-      std::cout << "ERROR: negative split variable for nonterminal node." << std::endl;
-      std::cout << "rankVarRecursive Split Variable = " << sv << std::endl;
-      std::cout << "rankVarRecursive Error Reduction = " << er << std::endl;
-    }
+  //if(sv == -1)
+  //{
+  //std::cout << "ERROR: negative split variable for nonterminal node." << std::endl;
+  //std::cout << "rankVarRecursive Split Variable = " << sv << std::endl;
+  //std::cout << "rankVarRecursive Error Reduction = " << er << std::endl;
+  //}
   
   // Add error reduction to the current total for the appropriate
   // variable.
