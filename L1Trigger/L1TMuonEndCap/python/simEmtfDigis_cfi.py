@@ -10,5 +10,6 @@ import FWCore.ParameterSet.Config as cms
 ##   *  0 in all other cases (MC, csctfDigis or emtfStage2Digis input)
 simEmtfDigis = cms.EDProducer("L1TMuonEndCapTrackProducer",
                               CSCInput = cms.InputTag('simCscTriggerPrimitiveDigis','MPCSORTED'),
-                              CSCInputBxShift = cms.untracked.int32(0)
+                              CSCInputBxShift = cms.untracked.int32(0),
+                              RPCInput = cms.InputTag('muonRPCDigis',''),
                               )

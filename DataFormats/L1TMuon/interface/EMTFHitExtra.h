@@ -19,7 +19,7 @@ namespace l1t {
     
   EMTFHitExtra() :
     
-      bx0(-999), layer(-999), zone_hit(-999), phi_hit(-999), phi_z_val(-999), phi_loc_int(-999), 
+      bx0(-999), layer(-999), zone(-999), phi_hit(-999), phi_zone(-999), phi_loc_int(-999), 
       phi_loc_deg(-999), phi_loc_rad(-999), phi_glob_deg(-999), phi_glob_rad(-999), phi_geom_rad(-999), 
       theta_int(-999), theta_loc(-999), theta_deg(-999), theta_rad(-999), eta(-999)
       {};
@@ -34,9 +34,9 @@ namespace l1t {
 
     void set_bx0            (int  bits) { bx0           = bits; }
     void set_layer          (int  bits) { layer         = bits; }
-    void set_zone_hit       (int  bits) { zone_hit      = bits; }
+    void set_zone           (int  bits) { zone          = bits; }
     void set_phi_hit        (int  bits) { phi_hit       = bits; }
-    void set_phi_z_val      (int  bits) { phi_z_val     = bits; }
+    void set_phi_zone       (int  bits) { phi_zone      = bits; }
     void set_phi_loc_int    (int  bits) { phi_loc_int   = bits; }
     void set_phi_loc_deg    (float val) { phi_loc_deg   = val;  }
     void set_phi_loc_rad    (float val) { phi_loc_rad   = val;  }
@@ -51,9 +51,9 @@ namespace l1t {
 
     int   BX0            ()  const { return bx0;            }
     int   Layer          ()  const { return layer;          }
-    int   Zone_hit       ()  const { return zone_hit;       }
+    int   Zone           ()  const { return zone;           }
     int   Phi_hit        ()  const { return phi_hit;        }
-    int   Phi_Z_val      ()  const { return phi_z_val;      }
+    int   Phi_zone       ()  const { return phi_zone;       }
     int   Phi_loc_int    ()  const { return phi_loc_int;    }
     float Phi_loc_deg    ()  const { return phi_loc_deg;    }
     float Phi_loc_rad    ()  const { return phi_loc_rad;    }
@@ -73,9 +73,9 @@ namespace l1t {
     
     int   bx0;          //  1-3600.  Filled in EMTFHit.cc from CSCCorrelatedLCTDigi
     int   layer;
-    int   zone_hit;     //  4 - 118. Filled in emulator from ConvertedHit.Zhit()
+    int   zone;         //  4 - 118. Filled in emulator from ConvertedHit.Zhit()
     int   phi_hit;      //  1 - 42.  Filled in emulator from ConvertedHit.Ph_hit()
-    int   phi_z_val;    //  1 -  6.  Filled in emulator from ConvertedHit.Phzvl()
+    int   phi_zone;     //  1 -  6.  Filled in emulator from ConvertedHit.Phzvl()
     int   phi_loc_int;  //  ? -  ?.  Filled in emulator from ConvertedHit.Phi()
     float phi_loc_deg;  //  ? -  ?.  Filled in emulator, calculated from phi_loc_int with GetPackedPhi
     float phi_loc_rad;  //  ? -  ?.  Filled in emulator, calculated from phi_loc_int with GetPackedPhi
