@@ -78,10 +78,13 @@ PrimitiveConverterRPC::convert( std::vector<TriggerPrimitive> TrigPrim,
     const GlobalPoint gpLow = roll->toGlobal(lpLow);
     roll.release();
 
-    float glob_phi = (gpHi.phi() + gpLow.phi()) / 2.0;
-    float glob_eta = gpHi.eta();
+    float glob_phi_hi  = gpHi.phi();  // Averaging global point phi's directly does weird things,
+    float glob_phi_low = gpLow.phi(); // e.g. 2*pi/3 + 2*pi/3 = 4*pi/3 = -2*pi/3, so avg. = -pi/3, not 2*pi/3
+    float glob_phi = (glob_phi_hi + glob_phi_low) / 2.0;
+    float glob_eta = (gpHi.eta() + gpLow.eta()) / 2.0;
 
-    if (verbose) std::cout << "RPC cluster phi = " << glob_phi << ", eta = " << glob_eta << std::endl;
+    if (verbose) std::cout << "RPC cluster phi = " << glob_phi << " (" << glob_phi_hi << ", " << glob_phi_low 
+			   << "), eta = " << glob_eta << " (" << gpHi.eta() << ", " << gpLow.eta() << ")" << std::endl;
 
     hit1.set_phi_glob_rad( glob_phi );
     hit1.set_phi_glob_deg( glob_phi*180/Geom::pi() );
