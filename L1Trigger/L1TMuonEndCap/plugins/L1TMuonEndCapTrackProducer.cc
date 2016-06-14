@@ -513,21 +513,20 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       // Actual setting in firmware - AWB 12.04.16
       std::pair<int,l1t::RegionalMuonCand> outPair(ebx,outCand);
       
-      if(!ME13 && fabs(eta) > 1.1) {
-	// // Extra debugging output - AWB 29.03.16
-	// std::cout << "Input: eBX = " << ebx << ", seBX = " << sebx << ", pt = " << xmlpt*1.4 
-	// 	    << ", phi = " << AllTracks[fbest].phi << ", eta = " << eta 
-	// 	    << ", theta = " << AllTracks[fbest].theta << ", sign = " << 1 
-	// 	    << ", quality = " << mode << ", trackaddress = " << 1 
-	// 	    << ", sector = " << sector << std::endl;
-	// std::cout << "Output: BX = " << ebx << ", hwPt = " << outCand.hwPt() << ", hwPhi = " << outCand.hwPhi() 
-	// 	    << ", hwEta = " << outCand.hwEta() << ", hwSign = " << outCand.hwSign() 
-	// 	    << ", hwQual = " << outCand.hwQual() << ", link = " << outCand.link()
-	// 	    << ", processor = " << outCand.processor() 
-	// 	    << ", trackFinderType = " << outCand.trackFinderType() << std::endl;
-	holder.push_back(outPair);
-	thisTrack.set_isGMT( 1 );
-      }
+      // // Extra debugging output - AWB 29.03.16
+      // std::cout << "Input: eBX = " << ebx << ", seBX = " << sebx << ", pt = " << xmlpt*1.4 
+      // 	    << ", phi = " << AllTracks[fbest].phi << ", eta = " << eta 
+      // 	    << ", theta = " << AllTracks[fbest].theta << ", sign = " << 1 
+      // 	    << ", quality = " << mode << ", trackaddress = " << 1 
+      // 	    << ", sector = " << sector << std::endl;
+      // std::cout << "Output: BX = " << ebx << ", hwPt = " << outCand.hwPt() << ", hwPhi = " << outCand.hwPhi() 
+      // 	    << ", hwEta = " << outCand.hwEta() << ", hwSign = " << outCand.hwSign() 
+      // 	    << ", hwQual = " << outCand.hwQual() << ", link = " << outCand.link()
+      // 	    << ", processor = " << outCand.processor() 
+      // 	    << ", trackFinderType = " << outCand.trackFinderType() << std::endl;
+      holder.push_back(outPair);
+      thisTrack.set_isGMT( 1 );
+
       OutputTracks->push_back( thisTrack );
       OutTracks->push_back( thisTrack.CreateEMTFTrack() );
     }
