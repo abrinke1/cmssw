@@ -35,18 +35,24 @@
 #include "L1Trigger/L1TMuonEndCap/interface/EMTFHitTools.h"
 
 using namespace L1TMuon;
+class RPCGeometry;
+// Pointers to the current geometry records
+unsigned long long _geom_cache_id;
+edm::ESHandle<RPCGeometry> _geom_rpc;
 
 
 L1TMuonEndCapTrackProducer::L1TMuonEndCapTrackProducer(const PSet& p) {
 
   inputTokenCSC = consumes<CSCCorrelatedLCTDigiCollection>(p.getParameter<edm::InputTag>("CSCInput"));
   bxShiftCSC = p.getUntrackedParameter<int>("CSCInputBxShift", 0);
+  inputTokenRPC = consumes<RPCDigiCollection>(p.getParameter<edm::InputTag>("RPCInput"));
   
-  produces<l1t::RegionalMuonCandBxCollection >("EMTF");
-  produces< l1t::EMTFTrackCollection >("EMTF");
-  produces< l1t::EMTFHitCollection >("EMTF");  
-  produces< l1t::EMTFTrackExtraCollection >("EMTF");
-  produces< l1t::EMTFHitExtraCollection >("EMTF");  
+  produces<l1t::RegionalMuonCandBxCollection >("");
+  produces< l1t::EMTFTrackCollection >("");
+  produces< l1t::EMTFHitCollection >("");  
+  produces< l1t::EMTFTrackExtraCollection >("");
+  produces< l1t::EMTFHitExtraCollection >("CSC");  
+  produces< l1t::EMTFHitExtraCollection >("RPC");  
 }
 
 
@@ -63,11 +69,19 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
   std::auto_ptr<l1t::EMTFHitCollection> OutHits (new l1t::EMTFHitCollection);
   std::auto_ptr<l1t::EMTFTrackExtraCollection> OutputTracks (new l1t::EMTFTrackExtraCollection);
   std::auto_ptr<l1t::EMTFHitExtraCollection> OutputHits (new l1t::EMTFHitExtraCollection);
+  std::auto_ptr<l1t::EMTFHitExtraCollection> OutputHitsRPC (new l1t::EMTFHitExtraCollection);
 
   std::vector<BTrack> PTracks[NUM_SECTORS];
 
   std::vector<TriggerPrimitive> tester;
+  std::vector<TriggerPrimitive> tester_rpc;
   //std::vector<InternalTrack> FoundTracks;
+
+  // Get the RPC geometry
+  const MuonGeometryRecord& geom = es.get<MuonGeometryRecord>();
+  unsigned long long geomid = geom.cacheIdentifier();
+  if( _geom_cache_id != geomid )
+    geom.get(_geom_rpc);
 
   
   //////////////////////////////////////////////
@@ -76,8 +90,12 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
   
   edm::Handle<CSCCorrelatedLCTDigiCollection> MDC;
   ev.getByToken(inputTokenCSC, MDC);
-  std::vector<TriggerPrimitive> out;
+
+  edm::Handle<RPCDigiCollection> RDC;
+  ev.getByToken(inputTokenRPC, RDC);
   
+  std::vector<TriggerPrimitive> out;
+
   auto chamber = MDC->begin();
   auto chend  = MDC->end();
   for( ; chamber != chend; ++chamber ) {
@@ -101,6 +119,16 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       }
     }
   }
+
+  auto rchamber = RDC->begin();
+  auto rchend  = RDC->end();
+  for( ; rchamber != rchend; ++rchamber) {
+    auto rdigi = (*rchamber).second.first;
+    auto rdend = (*rchamber).second.second;
+    for( ; rdigi != rdend; ++rdigi) {
+      out.push_back(TriggerPrimitive( (*rchamber).first, rdigi->strip(), 0, rdigi->bx())); // Layer unset.  How to access? - AWB 03.06.16 
+    }
+  }
   
   
   //////////////////////////////////////////////
@@ -117,13 +145,9 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
   
   for( ; tp != tpend; ++tp ) {
     if(tp->subsystem() == 1)
-      {
-	//TriggerPrimitiveRef tpref(out,tp - out.cbegin());
-	
 	tester.push_back(*tp);
-	
-	//std::cout<<"\ntrigger prim found station:"<<tp->detId<CSCDetId>().station()<<std::endl;
-      }
+    if(tp->subsystem() == 2)
+      tester_rpc.push_back(*tp);
      }
   //}
   std::vector<ConvertedHit> CHits[NUM_SECTORS];
@@ -137,6 +161,11 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
     
     std::vector<ConvertedHit> ConvHits = primConv_.convert(tester,SectIndex);
     CHits[SectIndex] = ConvHits;
+
+    l1t::EMTFHitExtraCollection tmp_hits_rpc = primConvRPC_.convert(tester_rpc, SectIndex, _geom_rpc); 
+    for (uint iHit = 0; iHit < tmp_hits_rpc.size(); iHit++) 
+      OutputHitsRPC->push_back( tmp_hits_rpc.at(iHit) );
+    std::vector<ConvertedHit> ConvHitsRPC = primConvRPC_.fillConvHits(tmp_hits_rpc);
     
     // Fill OutputHits with ConvertedHit information
     for (uint iCHit = 0; iCHit < ConvHits.size(); iCHit++) {
@@ -155,9 +184,9 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 	  // isMatched = true;
 	  OutputHits->at(iHit).set_neighbor    ( ConvHits.at(iCHit).IsNeighbor());
 	  OutputHits->at(iHit).set_sector_index( ConvHits.at(iCHit).SectorIndex() );
-	  OutputHits->at(iHit).set_zone_hit    ( ConvHits.at(iCHit).Zhit()   );
+	  OutputHits->at(iHit).set_phi_zone    ( ConvHits.at(iCHit).Zhit()   );
 	  OutputHits->at(iHit).set_phi_hit     ( ConvHits.at(iCHit).Ph_hit() );
-	  OutputHits->at(iHit).set_phi_z_val   ( ConvHits.at(iCHit).Phzvl()  );
+	  OutputHits->at(iHit).set_zone        ( ConvHits.at(iCHit).Phzvl()  );
 	  OutputHits->at(iHit).set_phi_loc_int ( ConvHits.at(iCHit).Phi()    );
 	  OutputHits->at(iHit).set_theta_int   ( ConvHits.at(iCHit).Theta()  );
 	  
@@ -173,7 +202,7 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 	  OutHits->push_back( OutputHits->at(iHit).CreateEMTFHit() );
 	}
       } // End loop: for (uint iHit = 0; iHit < OutputHits->size(); iHit++)
-      
+
       // if (isMatched == false) {
       //   std::cout << "***********************************************" << std::endl;
       //   std::cout << "Unmatched ConvHit in event " << ev.id().event() << ", SectIndex " << SectIndex << std::endl;
@@ -523,11 +552,12 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
   }
   
   //ev.put( FoundTracks, "DataITC");
-  ev.put( OutputCands, "EMTF");
-  ev.put( OutHits, "EMTF");      // EMTFHitCollection
-  ev.put( OutTracks, "EMTF");    // EMTFTrackCollection
-  ev.put( OutputHits, "EMTF");   // EMTFHitExtraCollection
-  ev.put( OutputTracks, "EMTF"); // EMTFTrackExtraCollection
+  ev.put( OutputCands, "");
+  ev.put( OutHits, "");      // EMTFHitCollection
+  ev.put( OutTracks, "");    // EMTFTrackCollection
+  ev.put( OutputHits, "CSC");   // EMTFHitExtraCollection
+  ev.put( OutputHitsRPC, "RPC");   // EMTFHitExtraCollection
+  ev.put( OutputTracks, ""); // EMTFTrackExtraCollection
   //std::cout<<"End Upgraded Track Finder Prducer:::::::::::::::::::::::::::\n:::::::::::::::::::::::::::::::::::::::::::::::::\n\n";
   
 }//analyzer
