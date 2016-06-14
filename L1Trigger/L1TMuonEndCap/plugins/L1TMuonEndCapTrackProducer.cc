@@ -354,7 +354,7 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       
       
       int sector = -1;
-      bool ME13 = false;
+      // bool ME13 = false;
       int me1address = 0, me2address = 0, CombAddress = 0, mode_uncorr = 0;
       int ebx = 20, sebx = 20;
       int phis[4] = {-99,-99,-99,-99};
@@ -415,8 +415,8 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 	  }
 	  
 	  
-	  if(A->TP().detId<CSCDetId>().station() == 1 && A->TP().detId<CSCDetId>().ring() == 3)
-	    ME13 = true;
+	  // if(A->TP().detId<CSCDetId>().station() == 1 && A->TP().detId<CSCDetId>().ring() == 3)
+	  //   ME13 = true;
 	  
 	  if(station == 1 && id > 3 && id < 7){
 	    
