@@ -49,7 +49,7 @@ PatternOutput DetectPatterns(ZonesOutput Eout){
 	  patt[y].BitShift(63);patt[y].BitShift(b-78);	
 	}	
 	else{	
-	  patt[y].BitShift(63);patt[y].BitShift(63);patt[y].BitShift(b-141);  //////
+	  patt[y].BitShift(63);patt[y].BitShift(1);patt[y].BitShift(63);patt[y].BitShift(1);patt[y].BitShift(b-139);  //////
 	} 			
 	
 	for(int yy=0;yy != 12;yy++){//loop over 8 long integers of each pattern

@@ -38,7 +38,7 @@ std::vector<std::vector<ConvertedHit>> GroupBX(std::vector<ConvertedHit> ConvHit
 PatternOutput DeleteDuplicatePatterns(std::vector<PatternOutput> Pout){
   
   std::vector<int> tmp (192,0);//was 128
-  std::vector<std::vector<int>> rank (4,tmp), layer(4,tmp),straightness(4,tmp);
+  std::vector<std::vector<int>> rank (4,tmp), layer(4,tmp),straightness(4,tmp),bxgroup(4,tmp);
   std::vector<ConvertedHit> Hits;
   
   for(int i=0;i<3;i++){
@@ -48,7 +48,7 @@ PatternOutput DeleteDuplicatePatterns(std::vector<PatternOutput> Pout){
     for(int zone=0;zone<4;zone++){
       for(int strip=0;strip<192;strip++){//was 128
 	
-	if(Pout[i].detected.rank[zone][strip] >= rank[zone][strip]){
+	if(Pout[i].detected.rank[zone][strip] > rank[zone][strip]){
 	  
 	  rank[zone][strip] = Pout[i].detected.rank[zone][strip];
 	  layer[zone][strip] = Pout[i].detected.layer[zone][strip];
@@ -58,7 +58,7 @@ PatternOutput DeleteDuplicatePatterns(std::vector<PatternOutput> Pout){
       }
     }
     
-    if(set && (Pout[i].hits.size() > Hits.size())){
+    if(set ){ // && (Pout[i].hits.size() >= Hits.size())){
       
       std::vector<ConvertedHit> test = Pout[i].hits;
       
@@ -74,6 +74,7 @@ PatternOutput DeleteDuplicatePatterns(std::vector<PatternOutput> Pout){
   qout.rank = rank;
   qout.layer = layer;
   qout.straightness = straightness;
+  qout.bxgroup = bxgroup;
   
   PatternOutput output;
   

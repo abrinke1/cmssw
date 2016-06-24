@@ -50,21 +50,27 @@ MatchingOutput PhiMatching(SortingOutput Sout){
 	  /* 	if((*znc) == z) */
 	  /* 		inzone = 1;//yes */
 	  /* } */
+
+	  bool inBXgroup = false;
+	  switch(Winners[z][w].BXGroup()){
+
+	  case 1: if(i->BX() > 3 && i->BX() < 7) inBXgroup = true;break;
+	  case 2: if(i->BX() > 4 && i->BX() < 8) inBXgroup = true;break;
+	  case 3: if(i->BX() > 5 && i->BX() < 9) inBXgroup = true;break;
+	  default: inBXgroup = false;
+
+	  }
 	  
 	  ////////////////////////////////////////////////////////////////////////////////////////////
 	  /////////////////// Setting the matched hits based on phi //////////////////////////////////
 	  ////////////////////////////////////////////////////////////////////////////////////////////
 	  int setstation = i->Station() - 1;
-	  //bool one = ((z == 3) && (i->Station() > 1));                //Zone 3 is handled differently so we
-	  //bool two = ((z == 3) && (i->Station() == 1) && (id > 3));   //have this conditions here
 	  bool setphi = 0;
-	  //if(one || two)
-	  //	setstation++;
 	  
 	  if(verbose)
 	    std::cout<<"setstation = "<<setstation<<std::endl;
 	  
-	  if((fabs((Winners[z][w].Strip()) - i->Zhit()) <= phdiff[setstation]) ){//is close to winner keystrip and in same zone?
+	  if((fabs((Winners[z][w].Strip()) - i->Zhit()) <= phdiff[setstation]) && inBXgroup){//is close to winner keystrip and in same zone?
 	    
 	    if(ph_output[z][w][setstation].Phi() == -999){//has this already been set? no
 	      

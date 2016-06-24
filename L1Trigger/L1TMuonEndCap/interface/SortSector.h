@@ -34,6 +34,7 @@ SortingOutput  SortSect(PatternOutput Pout){
 	/////////////////////////////////////////////////////
 	
 	Winners[zone][i] = temp[zone];
+	Winners[zone][i].SetBXGroup(Detected.bxgroup[zone][temp[zone].Strip()]);
       }
     }
   }
