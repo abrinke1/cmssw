@@ -72,6 +72,7 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
   std::auto_ptr<l1t::EMTFHitExtraCollection> OutputHitsRPC (new l1t::EMTFHitExtraCollection);
 
   std::vector<BTrack> PTracks[NUM_SECTORS];
+  std::vector<BTrack> PTracks_BX[NUM_SECTORS][3];
 
   std::vector<TriggerPrimitive> tester;
   std::vector<TriggerPrimitive> tester_rpc;
@@ -145,13 +146,61 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
   
   for( ; tp != tpend; ++tp ) {
     if(tp->subsystem() == 1)
-	tester.push_back(*tp);
+      // tester.push_back(*tp);
     if(tp->subsystem() == 2)
       tester_rpc.push_back(*tp);
      }
   //}
+  
+  // Create extra converted hits for chambers with two LCTs (ambiguous strip/wire pairing)
+  for(unsigned int i1=0;i1<out.size();i1++){
+    tester.push_back(out[i1]);
+    
+    for(unsigned int i2=i1+1;i2<out.size();i2++){
+      
+      if ( out[i1].detId<CSCDetId>().station() == out[i2].detId<CSCDetId>().station() &&
+	   out[i1].detId<CSCDetId>().endcap() == out[i2].detId<CSCDetId>().endcap() &&
+	   out[i1].detId<CSCDetId>().triggerSector() == out[i2].detId<CSCDetId>().triggerSector() &&
+	   out[i1].detId<CSCDetId>().ring() == out[i2].detId<CSCDetId>().ring() &&
+	   out[i1].detId<CSCDetId>().chamber() == out[i2].detId<CSCDetId>().chamber() &&
+	   out[i1].getBX() == out[i2].getBX() && out[i1].Id() == out[i2].Id() &&
+	   out[i1].getStrip() != out[i2].getStrip() && out[i1].getWire() != out[i2].getWire() ) {
+	
+	TriggerPrimitive NewWire1(out[i1],out[i2]);
+	TriggerPrimitive NewWire2(out[i2],out[i1]);
+	tester.push_back(NewWire1);
+	tester.push_back(NewWire2);
+      } 
+    } // End loop: for(unsigned int i2=i1+1;i2<out.size();i2++)
+  } // End loop: for(unsigned int i1=0;i1<out.size();i1++)
+
+  
+  uint nHits = OutputHits->size();
+  for (uint iHit = 0; iHit < nHits; iHit++) {
+    for (uint jHit = iHit+1; jHit < nHits; jHit++) {
+      if ( OutputHits->at(iHit).Chamber() != OutputHits->at(jHit).Chamber() ) continue;
+      // if ( OutputHits->at(iHit).Ring() != OutputHits->at(jHit).Ring() ) continue;
+      if ( OutputHits->at(iHit).Sector() != OutputHits->at(jHit).Sector() ) continue;
+      if ( OutputHits->at(iHit).Station() != OutputHits->at(jHit).Station() ) continue;
+      if ( OutputHits->at(iHit).Endcap() != OutputHits->at(jHit).Endcap() ) continue;
+      if ( OutputHits->at(iHit).BX() != OutputHits->at(jHit).BX() ) continue;
+      if ( OutputHits->at(iHit).Neighbor() != OutputHits->at(jHit).Neighbor() ) continue;
+      if ( OutputHits->at(iHit).Strip() == OutputHits->at(jHit).Strip() ) continue;
+      if ( OutputHits->at(iHit).Wire() == OutputHits->at(jHit).Wire() ) continue;
+      
+      l1t::EMTFHitExtra new_hit_1 = OutputHits->at(iHit).Clone();
+      l1t::EMTFHitExtra new_hit_2 = OutputHits->at(jHit).Clone();
+      new_hit_1.set_wire( OutputHits->at(jHit).Wire() );
+      new_hit_2.set_wire( OutputHits->at(iHit).Wire() );
+      new_hit_1.SetCSCLCTDigi( new_hit_1.CreateCSCCorrelatedLCTDigi() );
+      new_hit_2.SetCSCLCTDigi( new_hit_2.CreateCSCCorrelatedLCTDigi() );
+      OutputHits->push_back( new_hit_1 );
+      OutputHits->push_back( new_hit_2 );
+    }
+  }
+
   std::vector<ConvertedHit> CHits[NUM_SECTORS];
-  MatchingOutput MO[NUM_SECTORS];
+  // MatchingOutput MO[NUM_SECTORS];
   
   for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++){//perform TF on all 12 sectors
 
@@ -260,8 +309,9 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
     ///////////////////////////////  same hits. This is where the BX analysis ends; Only 1 list of found patterns is given to the next module.
     
     std::vector<PatternOutput> Pout = Patterns(Zout);
+    std::vector<PatternOutput> Pout_Hold = Pout;
     
-    PatternOutput Test = DeleteDuplicatePatterns(Pout);
+    // PatternOutput Test = DeleteDuplicatePatterns(Pout);
     
     //PrintQuality(Test.detected);
     
@@ -271,7 +321,8 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
     ///////Finding 3 Best Pattern//
     ///////////////////////////////
     
-    SortingOutput Sout = SortSect(Test);
+    // SortingOutput Sout = SortSect(Test);
+    std::vector<SortingOutput> Sout_Hold = SortSect_Hold(Pout_Hold);
     
     
     //////////////////////////////////
@@ -279,15 +330,16 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
     ////// to segment inputs ///////// and matches the associated full precision triggerprimitives to the detected pattern.
     //////////////////////////////////
     
-    MatchingOutput Mout = PhiMatching(Sout);
-    MO[SectIndex] = Mout;
+    // MatchingOutput Mout = PhiMatching(Sout);
+    std::vector<MatchingOutput> Mout_Hold = PhiMatching_Hold(Sout_Hold);
     
     /////////////////////////////////
     //////// Calculate delta //////// Once we have matched the hits we calculate the delta phi and theta between all
     ////////    ph and th    //////// stations present.
     /////////////////////////////////
     
-    std::vector<std::vector<DeltaOutput>> Dout = CalcDeltas(Mout);////
+    // std::vector<std::vector<DeltaOutput>> Dout = CalcDeltas(Mout);////
+    std::vector<std::vector<std::vector<DeltaOutput>>> Dout_Hold = CalcDeltas_Hold(Mout_Hold);
     
     
     /////////////////////////////////
@@ -295,27 +347,59 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
     ////// Best 3 tracks/sector /////  Here ghost busting is done to delete tracks which are comprised of the same associated stubs.
     /////////////////////////////////
     
-    std::vector<BTrack> Bout = BestTracks(Dout);
-    PTracks[SectIndex] = Bout;
-    
+    // std::vector<BTrack> Bout = BestTracks(Dout);
+    // PTracks[SectIndex] = Bout;
+
+    std::vector<std::vector<BTrack>> Bout_Hold = BestTracks_Hold(Dout_Hold);
+    for(int bx=0;bx<3;bx++)
+      PTracks_BX[SectIndex][bx] = Bout_Hold[bx];
+
     
   } // End loop: for(int SectIndex=0;SectIndex<NUM_SECTORS;SectIndex++)
   
   
-  ///////////////////////////////////////
-  /// Collect Muons from all sectors ////
-  ///////////////////////////////////////
+  /////////////////////////////////////// and BX windows and cancel across BXs even though not yet in FW
+  /// Collect Muons from all sectors //// to see if sub percent kind of effect. If more then I can try to
+  /////////////////////////////////////// FW exactly but it will take a lot more thinking. - mrcarver 24.06.16
   
   std::vector<BTrack> PTemp[NUM_SECTORS];
-  std::vector<BTrack> AllTracks;
+  std::vector<BTrack> AllTracks, AllTracks_PreCancel;
   for (int i=0; i<NUM_SECTORS; i++) PTemp[i] = PTracks[i];
   
-  for(int j=0;j<36;j++){
-    
-    if(PTemp[j/3][j%3].phi)//no track
-      AllTracks.push_back(PTemp[j/3][j%3]);
+  for(int bx=0;bx<3;bx++){
+    for(int j=0;j<36;j++){
+      
+      // if(PTemp[j/3][j%3].phi)//no track
+	// AllTracks.push_back(PTemp[j/3][j%3]);
 
+      if(PTracks_BX[j/3][bx][j%3].phi) {//no track
+	AllTracks_PreCancel.push_back(PTracks_BX[j/3][bx][j%3]);
+	if (PTracks_BX[j/3][bx][j%3].theta == 0)
+	  std::cout << "PTrack_BX theta = 0" << std::endl;
+      }
+      
+    }
   }
+
+  // Cancel out duplicate tracks
+  for (unsigned int i1=0; i1 < AllTracks_PreCancel.size(); i1++) {
+    bool dup = false;
+    int ebx = 20, sindex = -1;
+    for (std::vector<ConvertedHit>::iterator A = AllTracks_PreCancel[i1].AHits.begin(); A != AllTracks_PreCancel[i1].AHits.end(); A++) {
+      if (A->TP().getCSCData().bx < ebx) ebx = A->TP().getCSCData().bx;
+      sindex = A->SectorIndex();
+    }
+    for (unsigned int i2 = i1+1; i2 < AllTracks_PreCancel.size(); i2++) {
+      int ebx2 = 20, sindex2 = -1;
+      for (std::vector<ConvertedHit>::iterator A2 = AllTracks_PreCancel[i1].AHits.begin(); A2 != AllTracks_PreCancel[i1].AHits.end(); A2++) {
+	if (A2->TP().getCSCData().bx < ebx2) ebx2 = A2->TP().getCSCData().bx;
+	sindex2 = A2->SectorIndex();
+      }
+      if (ebx == ebx2 && AllTracks_PreCancel[i1].theta == AllTracks_PreCancel[i2].theta && AllTracks_PreCancel[i1].phi == AllTracks_PreCancel[i2].phi && AllTracks_PreCancel[i1].winner.Rank() == AllTracks_PreCancel[i2].winner.Rank() && sindex == sindex2 && sindex != -1 && sindex2 != -1) dup = true;
+    }
+    if (!dup) AllTracks.push_back(AllTracks_PreCancel[i1]);
+  }
+
   
   ///////////////////////////////////
   /// Make Internal track if ////////
@@ -323,7 +407,7 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
   /////////////////////////////////// 
   
   std::vector<l1t::RegionalMuonCand> tester1;
-  std::vector<std::pair<int,l1t::RegionalMuonCand>> holder;
+  std::vector<std::pair<int,l1t::RegionalMuonCand>> holder, holder2;
   
   for(unsigned int fbest=0;fbest<AllTracks.size();fbest++){
     
@@ -336,6 +420,8 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       tempTrack.rank = AllTracks[fbest].winner.Rank();
       tempTrack.deltas = AllTracks[fbest].deltas;
       std::vector<int> ps, ts;
+
+      if (tempTrack.theta == 0) std::cout << "Track has theta 0" << std::endl;
       
       l1t::EMTFTrackExtra thisTrack;
       thisTrack.set_phi_loc_int ( AllTracks[fbest].phi           );
@@ -351,7 +437,16 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       if (tempRank & 4)
 	tempStraightness |= 1;
       thisTrack.set_straightness ( tempStraightness );
-      
+
+      int mode = 0;
+      if(tempTrack.rank & 32)
+	mode |= 8;
+      if(tempTrack.rank & 8)
+	mode |= 4;
+      if(tempTrack.rank & 2)
+	mode |= 2;
+      if(tempTrack.rank & 1)
+	mode |= 1;
       
       int sector = -1;
       // bool ME13 = false;
@@ -359,26 +454,52 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       int ebx = 20, sebx = 20;
       int phis[4] = {-99,-99,-99,-99};
       
+      int cHits_in_station[4] = {0,0,0,0};
+      int eHits_in_station[4] = {0,0,0,0};
       for(std::vector<ConvertedHit>::iterator A = AllTracks[fbest].AHits.begin();A != AllTracks[fbest].AHits.end();A++){
 	
 	if(A->Phi() != -999){
+	  cHits_in_station[A->TP().detId<CSCDetId>().station() - 1] += 1;
 	  
 	  l1t::EMTFHitExtra thisHit;
 	  // thisHit.ImportCSCDetId( A->TP().detId<CSCDetId>() );
-	  
+
 	  for (uint iHit = 0; iHit < OutputHits->size(); iHit++) {
-	    if ( A->TP().detId<CSCDetId>().station() == OutputHits->at(iHit).Station() &&
-		 A->TP().getCSCData().cscID          == OutputHits->at(iHit).CSC_ID()  &&
-		 A->Wire()                           == OutputHits->at(iHit).Wire()    &&
-		 A->Strip()                          == OutputHits->at(iHit).Strip()   &&
-		 A->TP().getCSCData().bx - 6         == OutputHits->at(iHit).BX()      &&
-		 A->IsNeighbor()                     == OutputHits->at(iHit).Neighbor() ) {
+	    if ( (A->TP().detId<CSCDetId>().endcap() == 1) == (OutputHits->at(iHit).Endcap() == 1) &&
+		 A->TP().detId<CSCDetId>().station()       == OutputHits->at(iHit).Station() &&
+		 A->TP().detId<CSCDetId>().triggerSector() == OutputHits->at(iHit).Sector()  &&
+		 A->TP().getCSCData().cscID                == OutputHits->at(iHit).CSC_ID()  &&
+		 A->Wire()                                 == OutputHits->at(iHit).Wire()    &&
+		 A->Strip()                                == OutputHits->at(iHit).Strip()   &&
+		 A->TP().getCSCData().bx - 6               == OutputHits->at(iHit).BX()      &&
+		 A->IsNeighbor()                           == OutputHits->at(iHit).Neighbor() ) {
 	      thisHit = OutputHits->at(iHit);
-	      thisTrack.push_HitExtraIndex(iHit);
-	      thisTrack.push_HitExtra(thisHit); // Done before theta windows are applied ... how can we do it after? - AWB 29.04.16
+	      // Hacky fix because ConvertedHits are not removed when theta windows are applied - AWB 30.06.16
+	      if ( (A->TP().detId<CSCDetId>().station() == 1 && (mode & 8)) ||
+		   (A->TP().detId<CSCDetId>().station() == 2 && (mode & 4)) || 
+		   (A->TP().detId<CSCDetId>().station() == 3 && (mode & 2)) || 
+		   (A->TP().detId<CSCDetId>().station() == 4 && (mode & 1)) ) {
+		eHits_in_station[OutputHits->at(iHit).Station() - 1] += 1;
+		thisTrack.push_HitExtraIndex(iHit);
+		thisTrack.push_HitExtra(thisHit); 
+	      }
 	      break;
 	    }
 	  }
+	  
+	  if ( thisHit.Station() < 0 ) {
+	    std::cout << "!@#$ Converted hit with station " << A->TP().detId<CSCDetId>().station() << ", CSC_ID " << A->TP().getCSCData().cscID
+		      << ", sector index " << A->SectorIndex() << ", subsector " << A->Sub()
+		      << ", wire " << A->Wire() << ", strip " << A->Strip() << ", BX " << A->TP().getCSCData().bx - 6 
+		      << ", neighbor " << A->IsNeighbor() << " has no match" << std::endl;
+	    for (uint iHit = 0; iHit < OutputHits->size(); iHit++) 
+	      std::cout << "!@#$ Option " << iHit+1 << " with endcap " << OutputHits->at(iHit).Endcap() 
+			<< ", station " << OutputHits->at(iHit).Station() << ", CSC_ID " << OutputHits->at(iHit).CSC_ID() 
+			<< ", ring " << OutputHits->at(iHit).Ring() << ", chamber " << OutputHits->at(iHit).Chamber()
+			<< ", wire " << OutputHits->at(iHit).Wire() << ", strip " << OutputHits->at(iHit).Strip()
+			<< ", BX " << OutputHits->at(iHit).BX() << ", neighbor " << OutputHits->at(iHit).Neighbor() << std::endl;
+	  }
+	  
 	  thisTrack.set_endcap       ( thisHit.Endcap() );
 	  thisTrack.set_sector_index ( thisHit.Sector_index() );
 	  thisTrack.set_sector       ( l1t::calc_sector_from_index( thisHit.Sector_index() ) );
@@ -445,18 +566,25 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 	
       }
       
-      int mode = 0;
-      if(tempTrack.rank & 32)
-	mode |= 8;
-      if(tempTrack.rank & 8)
-	mode |= 4;
-      if(tempTrack.rank & 2)
-	mode |= 2;
-      if(tempTrack.rank & 1)
-	mode |= 1;
+      // if ( ( mode == 15 && (cHits_in_station[0] != 1 || cHits_in_station[1] != 1 || cHits_in_station[2] != 1 || cHits_in_station[3] != 1) ) ||
+      // 	   ( mode == 14 && (cHits_in_station[0] != 1 || cHits_in_station[1] != 1 || cHits_in_station[2] != 1 || cHits_in_station[3] != 0) ) ||
+      // 	   ( mode == 13 && (cHits_in_station[0] != 1 || cHits_in_station[1] != 1 || cHits_in_station[2] != 0 || cHits_in_station[3] != 1) ) ||
+      // 	   ( mode == 11 && (cHits_in_station[0] != 1 || cHits_in_station[1] != 0 || cHits_in_station[2] != 1 || cHits_in_station[3] != 1) ) ||
+      // 	   ( mode ==  7 && (cHits_in_station[0] != 0 || cHits_in_station[1] != 1 || cHits_in_station[2] != 1 || cHits_in_station[3] != 1) ) )
+      // 	std::cout << "Mode " << mode << " track has " << cHits_in_station[0] << " / " << cHits_in_station[1] << " / "
+      // 		  << cHits_in_station[2] << " / " << cHits_in_station[3] << " converted hits in stations 1 / 2 / 3 / 4" << std::endl;
+
+      if ( ( mode == 15 && (eHits_in_station[0] != 1 || eHits_in_station[1] != 1 || eHits_in_station[2] != 1 || eHits_in_station[3] != 1) ) ||
+	   ( mode == 14 && (eHits_in_station[0] != 1 || eHits_in_station[1] != 1 || eHits_in_station[2] != 1 || eHits_in_station[3] != 0) ) ||
+	   ( mode == 13 && (eHits_in_station[0] != 1 || eHits_in_station[1] != 1 || eHits_in_station[2] != 0 || eHits_in_station[3] != 1) ) ||
+	   ( mode == 11 && (eHits_in_station[0] != 1 || eHits_in_station[1] != 0 || eHits_in_station[2] != 1 || eHits_in_station[3] != 1) ) ||
+	   ( mode ==  7 && (eHits_in_station[0] != 0 || eHits_in_station[1] != 1 || eHits_in_station[2] != 1 || eHits_in_station[3] != 1) ) )
+	std::cout << "Mode " << mode << " track has " << eHits_in_station[0] << " / " << eHits_in_station[1] << " / "
+		  << eHits_in_station[2] << " / " << eHits_in_station[3] << " EMTF hits in stations 1 / 2 / 3 / 4" << std::endl;
       
       tempTrack.phis = ps;
       tempTrack.thetas = ts;
+      tempTrack.deltas = AllTracks[fbest].deltas;
       
       // // Before Mulhearn cleanup, May 11
       // unsigned long xmlpt_address = 0;
@@ -531,7 +659,7 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       OutTracks->push_back( thisTrack.CreateEMTFTrack() );
     }
   }
-  
+
   OutputCands->setBXRange(-2,2);
   
   for(int sect=0;sect<12;sect++){

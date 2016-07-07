@@ -28,7 +28,25 @@ namespace l1t {
 
     void ImportCSCCorrelatedLCTDigi (const CSCCorrelatedLCTDigi& _digi);
     EMTFHit CreateEMTFHit();
+    EMTFHitExtra Clone() {
+      EMTFHitExtra ht;
+      ht.set_endcap(Endcap()); ht.set_station(Station()); ht.set_ring(Ring()); ht.set_sector(Sector()); 
+      ht.set_sector_index(Sector_index()); ht.set_subsector(Subsector()); ht.set_chamber(Chamber()); 
+      ht.set_csc_ID(CSC_ID()); ht.set_roll(Roll()); ht.set_rpc_layer(RPC_layer()); ht.set_neighbor(Neighbor()); 
+      ht.set_mpc_link(MPC_link()); ht.set_wire(Wire()); ht.set_strip(Strip()); ht.set_strip_hi(Strip_hi()); 
+      ht.set_strip_low(Strip_low()); ht.set_track_num(Track_num()); ht.set_quality(Quality()); ht.set_pattern(Pattern()); 
+      ht.set_bend(Bend()); ht.set_valid(Valid()); ht.set_sync_err(Sync_err()); ht.set_bc0(BC0()); ht.set_bx(BX()); 
+      ht.set_stub_num(Stub_num()); ht.set_is_CSC_hit(Is_CSC_hit()); ht.set_is_RPC_hit(Is_RPC_hit()); 
 
+      ht.SetCSCDetId(CSC_DetId()); ht.SetRPCDetId(RPC_DetId()); ht.SetCSCLCTDigi(CSC_LCTDigi()); ht.SetRPCDigi(RPC_Digi());
+
+      ht.set_bx0(BX0()); ht.set_layer(Layer()); ht.set_zone(Zone()); ht.set_phi_hit(Phi_hit()); ht.set_phi_zone(Phi_zone()); 
+      ht.set_phi_loc_int(Phi_loc_int()); ht.set_phi_loc_deg(Phi_loc_deg()); ht.set_phi_loc_rad(Phi_loc_rad()); 
+      ht.set_phi_glob_deg(Phi_glob_deg()); ht.set_phi_glob_rad(Phi_glob_rad()); ht.set_phi_geom_rad(Phi_geom_rad()); 
+      ht.set_theta_int(Theta_int()); ht.set_theta_loc(Theta_loc()); ht.set_theta_deg(Theta_deg()); ht.set_theta_rad(Theta_rad()); 
+      ht.set_eta(Eta()); 
+      return ht;
+    }
     void SetZoneContribution (std::vector<int> vect_ints)  { zone_contribution = vect_ints; }
     std::vector<int> Zone_contribution          () const { return zone_contribution; }
 
