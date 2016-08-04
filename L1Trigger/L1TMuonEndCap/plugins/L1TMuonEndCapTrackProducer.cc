@@ -239,8 +239,9 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
 	  OutputHits->at(iHit).set_zone        ( ConvHits.at(iCHit).Phzvl()  );
 	  OutputHits->at(iHit).set_phi_loc_int ( ConvHits.at(iCHit).Phi()    );
 	  OutputHits->at(iHit).set_theta_int   ( ConvHits.at(iCHit).Theta()  );
-	  
-	  OutputHits->at(iHit).SetZoneContribution ( ConvHits.at(iCHit).ZoneContribution() );
+
+	  // // Replace with ZoneWord - AWB 04.09.16
+	  // OutputHits->at(iHit).SetZoneContribution ( ConvHits.at(iCHit).ZoneContribution() );
 	  OutputHits->at(iHit).set_phi_loc_deg  ( l1t::calc_phi_loc_deg( OutputHits->at(iHit).Phi_loc_int() ) );
 	  OutputHits->at(iHit).set_phi_loc_rad  ( l1t::calc_phi_loc_rad( OutputHits->at(iHit).Phi_loc_int() ) );
 	  OutputHits->at(iHit).set_phi_glob_deg ( l1t::calc_phi_glob_deg_hit( OutputHits->at(iHit).Phi_loc_deg(), OutputHits->at(iHit).Sector_index() ) );

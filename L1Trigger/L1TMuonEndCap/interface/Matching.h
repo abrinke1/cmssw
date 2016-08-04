@@ -49,19 +49,11 @@ MatchingOutput PhiMatching(SortingOutput Sout){
 	
 	//for(std::vector<ConvertedHit>::iterator i = Thits.begin();i != Thits.end();i++){//Possible associated hits
 	for(int i = Thits.size() - 1;i > -1;i--){//Possible associated hits
-	  //for(unsigned int i=0;i<Thits.size();i++){//Possible associated hits
-	  
-	  //int id = Thits[i].Id();
-	  
-	  if(verbose) std::cout<<"station = "<<Thits[i].Station()<<", strip = "<<Thits[i].Strip()<<", keywire = "<<Thits[i].Wire()<<" and zhit-"<<Thits[i].Zhit()<<", bx = "<<Thits[i].BX()<<", phi>>5 = "<<(Thits[i].Phi()>>5)<<"\n";
-	  
-	  // Unused variable
-	  /* bool inzone = 0;///Is the converted hit in the zone we're looking at now? 
-	     for(std::vector<int>::iterator znc = Thits[i].ZoneContribution().begin();znc != Thits[i].ZoneContribution().end();znc++){ 
-	     if((*znc) == z) 
-	     inzone = 1;//yes 
-	     } */
-	  
+
+	  int zmask[4] {1,2,4,8};
+	  bool inzone = false;///Is the converted hit in the zone we're looking at now?
+	  if(Thits[i].ZoneWord() & zmask[z]) inzone = true;
+
 	  bool inBXgroup = false;
 	  
 	  switch(Winners[z][w].BXGroup()){
@@ -87,7 +79,7 @@ MatchingOutput PhiMatching(SortingOutput Sout){
 	  //	std::cout<<"Winners[z][w].Strip(): "<<Winners[z][w].Strip()<<" + 1 - Thits[i].Zhit():"<<Thits[i].Zhit()<<" = "<<(Winners[z][w].Strip() + 1) - Thits[i].Zhit()<<". Thits[i].Phi()>>5 = "<<(Thits[i].Phi() >> 5)<<"\n";
 	  //}
 	  
-	  if((fabs(Winners[z][w].Strip() - (Thits[i].Phi()>>5)) <= phdiff[setstation]) && inBXgroup /*&& inzone*/){//is close to winner keystrip and in same zone?
+	  if((fabs(Winners[z][w].Strip() - (Thits[i].Phi()>>5)) <= phdiff[setstation]) && inBXgroup && inzone){//is close to winner keystrip and in same zone?
 	    
 	    if(ph_output[z][w][setstation].Phi() == -999){//has this already been set? no
 	      
@@ -116,7 +108,10 @@ MatchingOutput PhiMatching(SortingOutput Sout){
 		setphi = true;
 		
 	      }
-	      
+
+	      if (d2 == d1) {
+		if (Thits[i].Phi() > ph_output[z][w][setstation].Phi()) ph_output[z][w][setstation] = (Thits[i]);
+	      }
 	    }
 	    
 	    /////////////////////////////////////////////////////////////////////////////////////
