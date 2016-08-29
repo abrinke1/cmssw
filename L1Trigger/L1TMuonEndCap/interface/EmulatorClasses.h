@@ -132,9 +132,9 @@ class SortingOutput{
   
 };
 
-typedef std::vector<std::vector<std::vector<std::vector<ConvertedHit>>>> ThOutput;
-typedef std::vector<std::vector<std::vector<std::vector<int>>>> ThOutput2;
-typedef std::vector<std::vector<std::vector<ConvertedHit>>> PhOutput;
+typedef struct ThOutput { ConvertedHit x[4][3][4][2]; } ThOutput;
+typedef struct ThOutput2 { int x[4][3][4][2]; } ThOutput2;
+typedef struct PhOutput { ConvertedHit x[4][3][4]; } PhOutput;
 class MatchingOutput{
   
  public:

@@ -23,9 +23,9 @@ std::vector<BTrack> BestTracks(std::vector<std::vector<DeltaOutput>> Dout){
     for(int t=0;t<3;t++){
       for(int d=0;d<4;d++){
 	
-	phi[r][t][d] = Dout[r][t].GetMatchOut().PhiMatch()[r][t][d].Phi();
+	phi[r][t][d] = Dout[r][t].GetMatchOut().PhiMatch().x[r][t][d].Phi();
 	//if(phi[r][t][d] != -999) std::cout<<"phi = "<<phi[r][t][d]<<"\n";
-	id[r][t][d] = Dout[r][t].GetMatchOut().PhiMatch()[r][t][d].Id();
+	id[r][t][d] = Dout[r][t].GetMatchOut().PhiMatch().x[r][t][d].Id();
       }
     }
   }
@@ -37,7 +37,7 @@ std::vector<BTrack> BestTracks(std::vector<std::vector<DeltaOutput>> Dout){
     for(int winner=0;winner<3;winner++){
       for(int station=0;station<4;station++){
 	
-	int cham = Dout[zone][winner].GetMatchOut().PhiMatch()[zone][winner][station].Id();
+	int cham = Dout[zone][winner].GetMatchOut().PhiMatch().x[zone][winner][station].Id();
 	//int relst = 0;
 	int relch = 0;
 	
@@ -174,8 +174,15 @@ std::vector<BTrack> BestTracks(std::vector<std::vector<DeltaOutput>> Dout){
 	bests.phi = Dout[i%4][i/4].Phi();
 	bests.theta = Dout[i%4][i/4].Theta();
 	bests.deltas = Dout[i%4][i/4].Deltas();
-	bests.clctpattern = Dout[i%4][i/4].GetMatchOut().PhiMatch()[i%4][i/4][0].Pattern();
-	bests.AHits = Dout[i%4][i/4].GetMatchOut().PhiMatch()[i%4][i/4];
+	bests.clctpattern = Dout[i%4][i/4].GetMatchOut().PhiMatch().x[i%4][i/4][0].Pattern();
+	// bests.AHits = Dout[i%4][i/4].GetMatchOut().PhiMatch().x[i%4][i/4];
+	// Was line above ... not sure if we should only push_back non-null converted hits - AWB 29.08.16
+	bests.AHits.clear();
+	for (int iPh = 0; iPh < 4; iPh++) {
+	  if ( Dout[i%4][i/4].GetMatchOut().PhiMatch().x[i%4][i/4][iPh].Theta() != -999 &&
+	       Dout[i%4][i/4].GetMatchOut().PhiMatch().x[i%4][i/4][iPh].Phi() > 0 )
+	    bests.AHits.push_back( Dout[i%4][i/4].GetMatchOut().PhiMatch().x[i%4][i/4][iPh] );
+	}
 
 	if (bests.phi != 0 && bests.theta == 0)
 	  std::cout << "In BestTracks.h, phi = " << bests.phi << " and theta = " << bests.theta << std::endl;
