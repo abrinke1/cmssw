@@ -193,6 +193,9 @@ class DeltaOutput{
   Winner _winner;
 	
 };
+// 3 BX, 4 zones, 3 winners
+typedef struct DeltaOutArr2 { DeltaOutput x[4][3]; } DeltaOutArr2;
+typedef struct DeltaOutArr3 { DeltaOutput x[3][4][3]; } DeltaOutArr3;
 
 struct BTrack{
 

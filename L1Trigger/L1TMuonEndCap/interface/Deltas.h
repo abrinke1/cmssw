@@ -218,18 +218,16 @@ std::vector<std::vector<DeltaOutput>> CalcDeltas(MatchingOutput Mout){
   return out;
 }
 
-std::vector<std::vector<std::vector<DeltaOutput>>> CalcDeltas_Hold(std::vector<MatchingOutput> Mout){
+DeltaOutArr3 CalcDeltas_Hold(std::vector<MatchingOutput> Mout){
   
-  DeltaOutput output;output.SetNull();
-  
-  std::vector<DeltaOutput> o (3,output);
-  std::vector<std::vector<DeltaOutput>> out (4,o);
-  std::vector<std::vector<std::vector<DeltaOutput>>> Output (3,out);
+  DeltaOutput output;
+  output.SetNull();
+  DeltaOutArr3 Output = { {{{output}}} };
   
   for(int bx=0;bx<3;bx++){
     for(int zone=0;zone<4;zone++){
       for(int winner=0;winner<3;winner++){
-	Output[bx][zone][winner] = Deltas(Mout[bx], zone, winner);
+	Output.x[bx][zone][winner] = Deltas(Mout[bx], zone, winner);
       }
     }
   }
