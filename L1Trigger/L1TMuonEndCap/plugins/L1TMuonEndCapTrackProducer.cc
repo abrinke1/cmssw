@@ -378,6 +378,17 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
     }
   }
 
+  // Find index of highest-ranked track per sector - AWB 14.09.16
+  // To mimic bug in EMTF firmware, only assign pT to the highest-ranked track
+  int highest_rank[11][13];
+  uint high_rank_index[11][13];
+  for (uint iBX = 3; iBX < 11; iBX++) {
+    for (uint iSect = 1; iSect < 13; iSect++) {
+      highest_rank[iBX][iSect] = -1;
+      high_rank_index[iBX][iSect] = 0;
+    }
+  }
+
   // Cancel out duplicate tracks
   for (unsigned int i1=0; i1 < AllTracks_PreCancel.size(); i1++) {
     bool dup = false;
@@ -394,7 +405,15 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       }
       if (ebx == ebx2 && AllTracks_PreCancel[i1].theta == AllTracks_PreCancel[i2].theta && AllTracks_PreCancel[i1].phi == AllTracks_PreCancel[i2].phi && AllTracks_PreCancel[i1].winner.Rank() == AllTracks_PreCancel[i2].winner.Rank() && sindex == sindex2 && sindex != -1 && sindex2 != -1) dup = true;
     }
-    if (!dup) AllTracks.push_back(AllTracks_PreCancel[i1]);
+    if (!dup) {
+      AllTracks.push_back(AllTracks_PreCancel[i1]);
+      // std::cout << "Track with index " << AllTracks.size() - 1 << " in BX " << ebx - 6 << ", sector " << sindex 
+      // 		<< ", has rank " << AllTracks_PreCancel[i1].winner.Rank() << std::endl;
+      if (AllTracks_PreCancel[i1].winner.Rank() > highest_rank[ebx][sindex]) {
+	highest_rank[ebx][sindex] = AllTracks_PreCancel[i1].winner.Rank();
+	high_rank_index[ebx][sindex] = AllTracks.size() - 1;
+      }
+    }
   }
 
   
@@ -627,6 +646,25 @@ void L1TMuonEndCapTrackProducer::produce(edm::Event& ev,
       thisTrack.set_eta_GMT    ( outCand.hwEta() );
       
       thisTrack.ImportPtLUT    ( thisTrack.Mode(), thisTrack.Pt_LUT_addr() );
+
+      // To mimic bug in EMTF firmware, only assign pT to the highest-ranked track - AWB 14.09.16
+      if (fbest != high_rank_index[ebx][thisTrack.Sector_index()]) {
+	thisTrack.set_pt_GMT(0);
+	thisTrack.set_pt(-0.5);
+	outCand.setHwPt(0);
+	// std::cout << "Track with index " << fbest << " in sector " << thisTrack.Sector_index() 
+	// 	  << " and rank " << thisTrack.Rank() << " set to pT 0"
+	// 	  << " (sector = " << thisTrack.Sector() << ", eta = " << thisTrack.Eta() 
+	// 	  << ", phi = " << thisTrack.Phi_glob_deg() << ", mode = " << thisTrack.Mode()
+	// 	  << ", ebx = " << ebx << ", sebx = " << sebx <<  ")" << std::endl;
+      }
+      else {
+	// std::cout << "Track with index " << fbest << " in sector " << thisTrack.Sector_index() 
+	// 	  << " and rank " << thisTrack.Rank() << " set to pT " << thisTrack.Pt_GMT()
+	// 	  << " (sector = " << thisTrack.Sector() << ", eta = " << thisTrack.Eta()
+	// 	  << ", phi = " << thisTrack.Phi_glob_deg() << ", mode = " << thisTrack.Mode()
+	// 	  << ", ebx = " << ebx << ", sebx = " << sebx <<  ")" << std::endl;
+      }
       
       // thisTrack.phi_loc_rad(); // Need to implement - AWB 04.04.16
       // thisTrack.phi_glob_rad(); // Need to implement - AWB 04.04.16
