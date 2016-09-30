@@ -164,7 +164,9 @@ DQMStoreQTestsExample::DQMStoreQTestsExample(const edm::ParameterSet& iConfig ) 
   // set tolerance for noisy channel
   noisyChan_test->setTolerance(0.30);
   // set # of neighboring channels for calculating average (default: 1)
-  noisyChan_test->setNumNeighbors(2);
+//  noisyChan_test->setNumNeighbors(2);
+  noisyChan_test->setNumNeighborsX(2);
+  noisyChan_test->setNumNeighborsY(2);
   // use RMS of distribution to judge if mean near expected value
   meanNear_test->useRMS();
   // Setup MostProbableLandau

@@ -306,7 +306,9 @@ public:
   NoisyChannel(const std::string &name) : SimpleTest(name,true)
   {
     rangeInitialized_ = false;
-    numNeighbors_ = 1;
+//    numNeighbors_ = 1; //1D
+    numNeighborsX_ = 1; //2D
+    numNeighborsY_ = 1; //2D
     setAlgoName(getAlgoName());
   }
   static std::string getAlgoName(void) { return "NoisyChannel"; }
@@ -319,7 +321,9 @@ public:
   /// Will use rollover when bin+i or bin-i is beyond histogram limits (e.g.
   /// for histogram with N bins, bin N+1 corresponds to bin 1,
   /// and bin -1 corresponds to bin N)
-  void setNumNeighbors(unsigned n) { if (n > 0) numNeighbors_ = n; }
+//  void setNumNeighbors(unsigned n) { if (n > 0) numNeighbors_ = n; } //1D
+  void setNumNeighborsX(unsigned nx) { if (nx > 0) numNeighborsX_ = nx; } //2D
+  void setNumNeighborsY(unsigned ny) { if (ny > 0) numNeighborsY_ = ny; } //2D
 
   /// set (percentage) tolerance for considering a channel noisy;
   /// eg. if tolerance = 20%, a channel will be noisy
@@ -338,9 +342,12 @@ protected:
   /// get average for bin under consideration
   /// (see description of method setNumNeighbors)
   double getAverage(int bin, const TH1 *h) const;
-
+  double getAverage2D(int binX, int binY, const TH1 *h) const; //for QUALITY TESTS
   float tolerance_;        /*< tolerance for considering a channel noisy */
-  unsigned numNeighbors_;  /*< # of neighboring channels for calculating average to be used
+//  unsigned numNeighbors_; //1D
+  unsigned numNeighborsX_; //2D
+  unsigned numNeighborsY_; //2D 
+			   /*< # of neighboring channels for calculating average to be used
 			     for comparison with channel under consideration */
   bool rangeInitialized_;  /*< init-flag for tolerance */
 };

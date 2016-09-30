@@ -188,11 +188,15 @@ void QTestConfigure::EnableNoisyChannelTest(std::string testName,
     qc1 = bei->getQCriterion(testName);
   }
   NoisyChannel * me_qc1  = (NoisyChannel *) qc1;
-  unsigned int neighbors = (unsigned int) atof(findOrDefault(params, "neighbours", "0"));
+//  unsigned int neighbors = (unsigned int) atof(findOrDefault(params, "neighbours", "0")); //1D
+  unsigned int neighborsX = (unsigned int) atof(findOrDefault(params, "neighboursX", "0")); //2D
+  unsigned int neighborsY = (unsigned int) atof(findOrDefault(params, "neighboursY", "0")); //2D
   double tolerance = atof(findOrDefault(params, "tolerance", "0"));
   double warning   = atof(findOrDefault(params, "warning", "0"));
   double error     = atof(findOrDefault(params, "error", "0"));
-  me_qc1->setNumNeighbors (neighbors);
+//  me_qc1->setNumNeighbors (neighbors); //1D
+  me_qc1->setNumNeighborsX (neighborsX); //2D
+  me_qc1->setNumNeighborsY (neighborsY); //2D
   me_qc1->setTolerance (tolerance);
   me_qc1->setWarningProb(warning);
   me_qc1->setErrorProb(error);

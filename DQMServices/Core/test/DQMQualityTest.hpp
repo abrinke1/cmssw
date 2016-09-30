@@ -62,7 +62,9 @@ class DQMQualityTest
     // set tolerance for noisy channel
     noisyChan_test_->setTolerance(0.30);
     // set # of neighboring channels for calculating average (default: 1)
-    noisyChan_test_->setNumNeighbors(2);
+//    noisyChan_test_->setNumNeighbors(2);
+    noisyChan_test_->setNumNeighborsX(2);
+    noisyChan_test_->setNumNeighborsY(2);
 
     // Mean-within-expected-value test
     meanNear_test_ = new MeanWithinExpected("meanNear");

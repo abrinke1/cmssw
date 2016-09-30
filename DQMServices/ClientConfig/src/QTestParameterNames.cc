@@ -15,7 +15,8 @@ QTestParameterNames::QTestParameterNames(){
 	this->constructMap(ContentsXRangeROOT::getAlgoName(), "xmin", "xmax");
 	this->constructMap(ContentsYRangeROOT::getAlgoName(), "ymin", "ymax","useEmptyBins");
 	this->constructMap(DeadChannelROOT::getAlgoName(),   "threshold");
-	this->constructMap(NoisyChannelROOT::getAlgoName(),  "tolerance", "neighbours");
+//	this->constructMap(NoisyChannelROOT::getAlgoName(),  "tolerance", "neighbours"); //1D
+	this->constructMap(NoisyChannelROOT::getAlgoName(),  "tolerance", "neighboursX", "neighboursY"); //2D
 	this->constructMap(MeanWithinExpectedROOT::getAlgoName(), "mean","useRMS","useSigma","useRange","xmin","xmax");
 
 	//======================== new quality tests in the parser =====================//
