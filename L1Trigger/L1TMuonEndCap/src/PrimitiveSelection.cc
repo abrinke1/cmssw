@@ -11,8 +11,8 @@
 #define NUM_RPC_CHAMBERS 7*6   // 6 in RE1,2; 12 in RE3,4; 6 from neighbor sector.
                                // Arranged in FW as 7 stations, 6 chambers per station (unconfirmed!)
 
-using CSCData = TriggerPrimitive::CSCData;
-using RPCData = TriggerPrimitive::RPCData;
+using CSCData = L1TMuon::TriggerPrimitive::CSCData;
+using RPCData = L1TMuon::TriggerPrimitive::RPCData;
 
 
 void PrimitiveSelection::configure(

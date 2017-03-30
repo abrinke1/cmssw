@@ -1,5 +1,5 @@
-#ifndef __L1TMuonEndCap_TriggerPrimitive_h__
-#define __L1TMuonEndCap_TriggerPrimitive_h__
+#ifndef __L1TMUON_TRIGGERPRIMITIVE_H__
+#define __L1TMUON_TRIGGERPRIMITIVE_H__
 //
 // Class: L1TMuon::TriggerPrimitive
 //
@@ -39,8 +39,9 @@ class CSCDetId;
 class RPCDigiL1Link;
 class RPCDetId;
 
+#include "MuonTriggerPrimitiveFwd.h"
 
-namespace L1TMuonEndCap {
+namespace L1TMuon {
 
   class TriggerPrimitive {
   public:
@@ -62,8 +63,8 @@ namespace L1TMuonEndCap {
 
     struct CSCData {
       CSCData() : trknmb(0), valid(0), quality(0), keywire(0), strip(0),
-                  pattern(0), bend(0), bx(0), mpclink(0), bx0(0), syncErr(0),
-                  cscID(0) {}
+		  pattern(0), bend(0), bx(0), mpclink(0), bx0(0), syncErr(0),
+		  cscID(0) {}
       uint16_t trknmb;
       uint16_t valid;
       uint16_t quality;
@@ -80,9 +81,9 @@ namespace L1TMuonEndCap {
 
     struct DTData {
       DTData() : bx(0), wheel(0), sector(0), station(0), radialAngle(0),
-                 bendingAngle(0), qualityCode(0), Ts2TagCode(0), BxCntCode(0),
-                 theta_bti_group(0), segment_number(0), theta_code(0),
-                 theta_quality(0) {}
+		 bendingAngle(0), qualityCode(0), Ts2TagCode(0), BxCntCode(0),
+		 theta_bti_group(0), segment_number(0), theta_code(0),
+		 theta_quality(0) {}
       // from ChambPhDigi (corresponds to a TRACO)
       // this gives us directly the phi
       int bx; // relative? bx number
@@ -110,18 +111,18 @@ namespace L1TMuonEndCap {
 
     //DT
     TriggerPrimitive(const DTChamberId&,
-                     const L1MuDTChambPhDigi&,
-                     const int segment_number);
+		     const L1MuDTChambPhDigi&,
+		     const int segment_number);
     TriggerPrimitive(const DTChamberId&,
-                     const L1MuDTChambThDigi&,
-                     const int segment_number);
+		     const L1MuDTChambThDigi&,
+		     const int segment_number);
     TriggerPrimitive(const DTChamberId&,
-                     const L1MuDTChambPhDigi&,
-                     const L1MuDTChambThDigi&,
-                     const int theta_bti_group);
+		     const L1MuDTChambPhDigi&,
+		     const L1MuDTChambThDigi&,
+		     const int theta_bti_group);
     //CSC
     TriggerPrimitive(const CSCDetId&,
-                     const CSCCorrelatedLCTDigi&);
+		     const CSCCorrelatedLCTDigi&);
     //RPC
     TriggerPrimitive(const RPCDetId& detid,
                      const unsigned strip,
@@ -130,6 +131,9 @@ namespace L1TMuonEndCap {
 
     //copy
     TriggerPrimitive(const TriggerPrimitive&);
+
+    // Create a copy of TP1 with wire of TP2
+    TriggerPrimitive(const TriggerPrimitive& tp1, const TriggerPrimitive& tp2);
 
     TriggerPrimitive& operator=(const TriggerPrimitive& tp);
     bool operator==(const TriggerPrimitive& tp) const;
@@ -187,14 +191,14 @@ namespace L1TMuonEndCap {
     // Translate to 'global' position information at the level of 60
     // degree sectors. Use CSC sectors as a template
     void calculateDTGlobalSector(const DTChamberId& chid,
-                                 unsigned& global_sector,
-                                 unsigned& subsector );
+				 unsigned& global_sector,
+				 unsigned& subsector );
     void calculateCSCGlobalSector(const CSCDetId& chid,
-                                  unsigned& global_sector,
-                                  unsigned& subsector );
+				  unsigned& global_sector,
+				  unsigned& subsector );
     void calculateRPCGlobalSector(const RPCDetId& chid,
-                                  unsigned& global_sector,
-                                  unsigned& subsector );
+				  unsigned& global_sector,
+				  unsigned& subsector );
 
     DTData  _dt;
     CSCData _csc;

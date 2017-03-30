@@ -1,13 +1,13 @@
-#ifndef __L1TMuonEndCap_GeometryTranslator_h__
-#define __L1TMuonEndCap_GeometryTranslator_h__
-//
+#ifndef __L1TMUON_GEOMETRYTRANSLATOR_H__
+#define __L1TMUON_GEOMETRYTRANSLATOR_H__
+// 
 // Class: L1TMuon::GeometryTranslator
 //
 // Info: This class implements a the translations from packed bits or
 //       digi information into local or global CMS coordinates for all
 //       types of L1 trigger primitives that we want to consider for
 //       use in the integrated muon trigger.
-//
+//       
 // Note: This should be considered as a base class to some sort of global
 //       look-up table
 //
@@ -19,9 +19,8 @@
 #include "DataFormats/GeometryVector/interface/GlobalPoint.h"
 #include <memory>
 
-
 // forwards
-namespace edm {
+namespace edm {  
   class EventSetup;
 }
 
@@ -31,7 +30,7 @@ class CSCLayer;
 class DTGeometry;
 class MagneticField;
 
-namespace L1TMuonEndCap {
+namespace L1TMuon{
   class TriggerPrimitive;
 
   class GeometryTranslator {

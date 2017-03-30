@@ -7,12 +7,12 @@
 #include "L1Trigger/L1TMuonEndCap/interface/SectorProcessorLUT.hh"
 #include "L1Trigger/L1TMuonEndCap/interface/TrackTools.hh"
 
-using CSCData = TriggerPrimitive::CSCData;
-using RPCData = TriggerPrimitive::RPCData;
+using CSCData = L1TMuon::TriggerPrimitive::CSCData;
+using RPCData = L1TMuon::TriggerPrimitive::RPCData;
 
 
 void PrimitiveConversion::configure(
-    const GeometryTranslator* tp_geom,
+    const L1TMuon::GeometryTranslator* tp_geom,
     const SectorProcessorLUT* lut,
     int verbose, int endcap, int sector, int bx,
     int bxShiftCSC, int bxShiftRPC,

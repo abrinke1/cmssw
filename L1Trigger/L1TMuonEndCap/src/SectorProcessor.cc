@@ -10,7 +10,7 @@ SectorProcessor::~SectorProcessor() {
 }
 
 void SectorProcessor::configure(
-    const GeometryTranslator* tp_geom,
+    const L1TMuon::GeometryTranslator* tp_geom,
     const SectorProcessorLUT* lut,
     const PtAssignmentEngine* pt_assign_engine,
     int verbose, int endcap, int sector,

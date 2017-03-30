@@ -5,11 +5,11 @@
 #include "DataFormats/L1TMuon/interface/EMTFRoad.h"
 #include "DataFormats/L1TMuon/interface/EMTFTrack.h"
 
-#include "L1Trigger/L1TMuonEndCap/interface/GeometryTranslator.h"
-#include "L1Trigger/L1TMuonEndCap/interface/MuonTriggerPrimitive.h"
-#include "L1Trigger/L1TMuonEndCap/interface/MuonTriggerPrimitiveFwd.h"
+#include "L1Trigger/L1TMuon/interface/GeometryTranslator.h"
+#include "L1Trigger/L1TMuon/interface/MuonTriggerPrimitive.h"
+#include "L1Trigger/L1TMuon/interface/MuonTriggerPrimitiveFwd.h"
 
-#include "L1Trigger/L1TMuonEndCap/interface/SubsystemTag.hh"
+#include "L1Trigger/L1TMuonEndCap/interface/EMTFSubsystemTag.hh"
 
 
 // Resolve namespaces
@@ -22,9 +22,9 @@ typedef l1t::EMTFTrack           EMTFTrack;
 typedef l1t::EMTFTrackCollection EMTFTrackCollection;
 typedef l1t::EMTFPtLUT           EMTFPtLUT;
 
-typedef L1TMuonEndCap::GeometryTranslator         GeometryTranslator;
-typedef L1TMuonEndCap::TriggerPrimitive           TriggerPrimitive;
-typedef L1TMuonEndCap::TriggerPrimitiveCollection TriggerPrimitiveCollection;
+typedef L1TMuon::GeometryTranslator         GeometryTranslator;
+typedef L1TMuon::TriggerPrimitive           TriggerPrimitive;
+typedef L1TMuon::TriggerPrimitiveCollection TriggerPrimitiveCollection;
 
 typedef emtf::CSCTag CSCTag;
 typedef emtf::RPCTag RPCTag;
