@@ -23,7 +23,7 @@ options.register('run',
 options.parseArguments()
 
 if options.db == "static" :
-    process.load("L1Trigger.L1TMuonEndCap.fakeEmtfParams_cff")
+    process.load("L1Trigger.L1TMuonEndcap.fakeEmtfParams_cff")
 else :
     if   options.db == "prod" :
         sourceDB = "frontier://FrontierProd/CMS_CONDITIONS"
@@ -42,7 +42,7 @@ else :
        toGet   = cms.VPSet(
             cms.PSet(
                  record = cms.string('L1TMuonEndcapParamsRcd'),
-                 tag = cms.string("L1TMuonEndCapParams_Stage2v0_hlt")
+                 tag = cms.string("L1TMuonEndcapParams_Stage2v0_hlt")
             )
        )
     )

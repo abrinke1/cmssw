@@ -53,8 +53,8 @@
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonGlobalParams.h"
 #include "CondFormats/L1TObjects/interface/L1TMuonBarrelParams.h"
-#include "CondFormats/L1TObjects/interface/L1TMuonEndCapParams.h"
-#include "CondFormats/L1TObjects/interface/L1TMuonEndCapForest.h"
+#include "CondFormats/L1TObjects/interface/L1TMuonEndcapParams.h"
+#include "CondFormats/L1TObjects/interface/L1TMuonEndcapForest.h"
 
 #include "CondFormats/L1TObjects/interface/L1TGlobalParameters.h"
 #include "CondFormats/L1TObjects/interface/L1TUtmAlgorithm.h"
@@ -105,13 +105,13 @@ namespace CondFormats_L1TObjects {
     L1TMuonBarrelParams dummy18;
     std::vector<L1TMuonBarrelParams::Node> dummy18a;
 
-    L1TMuonEndCapParams dummy19;
+    L1TMuonEndcapParams dummy19;
 
-    L1TMuonEndCapForest dummy20a;
-    L1TMuonEndCapForest::DTree dummy20b;
-    L1TMuonEndCapForest::DForest dummy20c;
-    L1TMuonEndCapForest::DForestColl dummy20d;
-    L1TMuonEndCapForest::DForestMap dummy20e;
+    L1TMuonEndcapForest dummy20a;
+    L1TMuonEndcapForest::DTree dummy20b;
+    L1TMuonEndcapForest::DForest dummy20c;
+    L1TMuonEndcapForest::DForestColl dummy20d;
+    L1TMuonEndcapForest::DForestMap dummy20e;
 
     L1TUtmAlgorithm dummy21a;
     L1TUtmBin dummy21b;

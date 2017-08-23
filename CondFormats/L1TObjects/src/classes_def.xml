@@ -11,14 +11,14 @@
     <field name="uparams_" mapping="blob"/>  
   </class>
 
-  <class name="L1TMuonEndCapParams">
+  <class name="L1TMuonEndcapParams">
   </class>
 
-  <class name="L1TMuonEndCapForest::DTree"/>
-  <class name="L1TMuonEndCapForest::DForest"/>
-  <class name="L1TMuonEndCapForest::DForestColl"/>
-  <class name="L1TMuonEndCapForest::DForestMap"/>
-  <class name="L1TMuonEndCapForest">
+  <class name="L1TMuonEndcapForest::DTree"/>
+  <class name="L1TMuonEndcapForest::DForest"/>
+  <class name="L1TMuonEndcapForest::DForestColl"/>
+  <class name="L1TMuonEndcapForest::DForestMap"/>
+  <class name="L1TMuonEndcapForest">
     <field name="forest_coll_" mapping="blob"/>  
     <field name="forest_map_" mapping="blob"/>  
   </class>

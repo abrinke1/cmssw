@@ -14,8 +14,8 @@ process.load("L1Trigger.L1TMuonEndcap.fakeEmtfParams_cff")
 process.getter = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
        cms.PSet(
-           record = cms.string('L1TMuonEndcapParamsRcd'),
-           data   = cms.vstring('L1TMuonEndcapParams')
+           record = cms.string('L1TMuonEndcapForestRcd'),
+           data   = cms.vstring('L1TMuonEndcapForest')
        )
    ),
    verbose = cms.untracked.bool(True)
@@ -29,15 +29,15 @@ outputDB = cms.Service("PoolDBOutputService",
                        CondDB,
                        toPut   = cms.VPSet(
                            cms.PSet(
-                               record = cms.string('L1TMuonEndcapParamsRcd'),
-                               tag = cms.string('L1TMuonEndcapParamsPrototype_Stage2v0_hlt')
+                               record = cms.string('L1TMuonEndcapForestRcd'),
+                               tag = cms.string('L1TMuonEndcapForest')
                            )
                        )
 )
 outputDB.DBParameters.authenticationPath = '.'
 process.add_(outputDB)
 
-process.l1bpw = cms.EDAnalyzer("L1TMuonEndcapWriter", isO2Opayload = cms.untracked.bool(False))
+process.l1bpw = cms.EDAnalyzer("L1TMuonEndcapForestWriter", isO2Opayload = cms.untracked.bool(False))
 
 process.p = cms.Path(process.getter + process.l1bpw)
 

@@ -31,8 +31,8 @@ def initL1SubsystemsExt( tagBaseVec = [],
         ),
         cms.PSet(
             record = cms.string('L1TMuonEndcapParamsO2ORcd'),
-            tag = cms.string('L1TMuonEndCapParams_' + tagBaseVec[ L1CondEnumExt.L1TMuonEndcapParams ]),
-            type = cms.string('L1TMuonEndCapParams'),
+            tag = cms.string('L1TMuonEndcapParams_' + tagBaseVec[ L1CondEnumExt.L1TMuonEndcapParams ]),
+            type = cms.string('L1TMuonEndcapParams'),
             key = cms.string(objectKey)
         ),
         cms.PSet(

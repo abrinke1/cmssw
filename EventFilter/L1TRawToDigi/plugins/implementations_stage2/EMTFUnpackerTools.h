@@ -11,12 +11,12 @@
 #include "DataFormats/L1TMuon/interface/EMTFDaqOut.h"
 #include "DataFormats/L1TMuon/interface/EMTFHit.h"
 #include "DataFormats/L1TMuon/interface/EMTFTrack.h"
-#include "L1Trigger/L1TMuonEndCap/interface/TrackTools.h"
+#include "L1Trigger/L1TMuonEndcap/interface/TrackTools.h"
 
 namespace l1t {
   namespace stage2 {
     namespace emtf {
-      namespace L1TMuonEndCap = ::emtf;  // use alias 'L1TMuonEndCap' for the namespace 'emtf' used in L1Trigger/L1TMuonEndCap
+      namespace L1TMuonEndcap = ::emtf;  // use alias 'L1TMuonEndcap' for the namespace 'emtf' used in L1Trigger/L1TMuonEndcap
 
       void ImportME  ( EMTFHit& _hit, const l1t::emtf::ME _ME, const int _endcap, const int _evt_sector );
       void ImportRPC ( EMTFHit& _hit, const l1t::emtf::RPC _RPC, const int _endcap, const int _evt_sector );

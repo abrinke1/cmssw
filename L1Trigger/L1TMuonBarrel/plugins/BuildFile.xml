@@ -1,5 +1,5 @@
 <library   file="*.cc" name="L1TriggerL1TMuonBarrelPlugins">
-<use name="L1Trigger/L1TMuonEndCap"/>
+<use name="L1Trigger/L1TMuonEndcap"/>
 <use name="L1Trigger/DTTrackFinder"/>
 <use name="FWCore/ServiceRegistry"/>
 <use name="CommonTools/UtilAlgos"/>

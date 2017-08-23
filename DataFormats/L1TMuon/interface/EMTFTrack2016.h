@@ -1,5 +1,5 @@
 // Class for muon tracks in EMTF - AWB 04.01.16
-// Mostly copied from L1Trigger/L1TMuonEndCap/interface/MuonInternalTrack.h
+// Mostly copied from L1Trigger/L1TMuonEndcap/interface/MuonInternalTrack.h
 
 #ifndef DataFormats_L1TMuon_EMTFTrack2016_h
 #define DataFormats_L1TMuon_EMTFTrack2016_h
