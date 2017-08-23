@@ -169,9 +169,11 @@ void L1TStage2EMTF::bookHistograms(DQMStore::IBooker& ibooker, const edm::Run&, 
       label = "ME+" + suffix_label[9 - i];
     }
 
-    if (hist < 6 || hist > 13) {
+    if (hist < 6) {
       nChambs = (i % 2) ? 18 : 36;
-    } else {
+    } else if (hist > 13) { 
+      nChambs = (i % 2) ? 36 : 18; 
+    } else { 
       nChambs = 36;
     }
     
@@ -480,7 +482,6 @@ void L1TStage2EMTF::analyze(const edm::Event& e, const edm::EventSetup& c) {
     emtfTrackPt->Fill(Track->Pt());
     emtfTrackEta->Fill(eta);
     
-    emtfTrackOccupancy->Fill(eta, phi_glob_rad);
     emtfTrackMode->Fill(mode);
     emtfTrackQuality->Fill(quality);
     emtfTrackQualityVsMode->Fill(mode, quality);
@@ -488,6 +489,7 @@ void L1TStage2EMTF::analyze(const edm::Event& e, const edm::EventSetup& c) {
     // Only plot if there are <= 1 neighbor hits in the track to avoid spikes at sector boundaries
     if (modeNeighbor < 2 || modeNeighbor == 4 || modeNeighbor == 8) {
       emtfTrackPhi->Fill(phi_glob_rad);
+      emtfTrackOccupancy->Fill(eta, phi_glob_rad);
       if (quality >= 12) {
         emtfTrackPhiHighQuality->Fill(phi_glob_rad);
       }
