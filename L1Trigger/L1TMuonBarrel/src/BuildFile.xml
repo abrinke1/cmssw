@@ -1,5 +1,5 @@
 <use name="L1Trigger/L1TMuon"/>
-<use name="L1Trigger/L1TMuonEndCap"/>
+<use name="L1Trigger/L1TMuonEndcap"/>
 <use name="L1Trigger/DTTrackFinder"/>
 <use name="FWCore/ServiceRegistry"/>
 <use name="FWCore/Framework"/>

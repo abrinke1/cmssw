@@ -9,10 +9,10 @@
 #include "FWCore/Framework/interface/EventSetup.h"
 #include "FWCore/Framework/interface/ESHandle.h"
 
-///#include "L1Trigger/L1TMuonEndCap/interface/ForestHelper.h"
+///#include "L1Trigger/L1TMuonEndcap/interface/ForestHelper.h"
 #include "CondFormats/DataRecord/interface/L1TMuonEndcapParamsRcd.h"
-//#include "CondFormats/DataRecord/interface/L1TMuonEndCapParamsRcd.h"
-#include "CondFormats/L1TObjects/interface/L1TMuonEndCapParams.h"
+//#include "CondFormats/DataRecord/interface/L1TMuonEndcapParamsRcd.h"
+#include "CondFormats/L1TObjects/interface/L1TMuonEndcapParams.h"
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "CondCore/DBOutputService/interface/PoolDBOutputService.h"
 #include "CondCore/CondDB/interface/Session.h"
@@ -30,10 +30,10 @@ public:
 
 void L1TMuonEndcapViewer::analyze(const edm::Event& iEvent, const edm::EventSetup& evSetup){
 
-    edm::ESHandle<L1TMuonEndCapParams> handle1;
+    edm::ESHandle<L1TMuonEndcapParams> handle1;
     evSetup.get<L1TMuonEndcapParamsRcd>().get( handle1 ) ;
-//    evSetup.get<L1TMuonEndCapParamsRcd>().get( handle1 ) ;
-    boost::shared_ptr<L1TMuonEndCapParams> ptr1(new L1TMuonEndCapParams(*(handle1.product ())));
+//    evSetup.get<L1TMuonEndcapParamsRcd>().get( handle1 ) ;
+    boost::shared_ptr<L1TMuonEndcapParams> ptr1(new L1TMuonEndcapParams(*(handle1.product ())));
 
     cout<<"L1TMuonEndcapParams: "<<endl;
     cout<<" PtAssignVersion_ = "<<ptr1->PtAssignVersion_<<endl;
@@ -43,9 +43,9 @@ void L1TMuonEndcapViewer::analyze(const edm::Event& iEvent, const edm::EventSetu
     cout<<" PhiMatchWindowSt3_ = "<<ptr1->PhiMatchWindowSt3_<<endl;
     cout<<" PhiMatchWindowSt4_ = "<<ptr1->PhiMatchWindowSt4_<<endl;
 
-///    edm::ESHandle<L1TMuonEndCapForest> handle2;
-///    evSetup.get<L1TMuonEndCapForestRcd>().get( handle2 ) ;
-///    boost::shared_ptr<L1TMuonEndCapForest> ptr2(new L1TMuonEndCapForest(*(handle2.product ())));
+///    edm::ESHandle<L1TMuonEndcapForest> handle2;
+///    evSetup.get<L1TMuonEndcapForestRcd>().get( handle2 ) ;
+///    boost::shared_ptr<L1TMuonEndcapForest> ptr2(new L1TMuonEndcapForest(*(handle2.product ())));
 ///
 ///    cout<<"L1TMuonEndcapForest: "<<endl;
 ///    l1t::ForestHelper fhelp( ptr2.get() );

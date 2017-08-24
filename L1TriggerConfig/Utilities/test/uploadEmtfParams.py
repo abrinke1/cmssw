@@ -9,13 +9,13 @@ process.MessageLogger.debugModules = cms.untracked.vstring('*')
 process.source = cms.Source("EmptySource", firstRun = cms.untracked.uint32(3))
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 
-process.load("L1Trigger.L1TMuonEndCap.fakeEmtfParams_cff")
+process.load("L1Trigger.L1TMuonEndcap.fakeEmtfParams_cff")
 
 process.getter = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
        cms.PSet(
            record = cms.string('L1TMuonEndcapParamsRcd'),
-           data   = cms.vstring('L1TMuonEndCapParams')
+           data   = cms.vstring('L1TMuonEndcapParams')
        )
    ),
    verbose = cms.untracked.bool(True)
@@ -30,7 +30,7 @@ outputDB = cms.Service("PoolDBOutputService",
                        toPut   = cms.VPSet(
                            cms.PSet(
                                record = cms.string('L1TMuonEndcapParamsRcd'),
-                               tag = cms.string('L1TMuonEndCapParamsPrototype_Stage2v0_hlt')
+                               tag = cms.string('L1TMuonEndcapParamsPrototype_Stage2v0_hlt')
                            )
                        )
 )

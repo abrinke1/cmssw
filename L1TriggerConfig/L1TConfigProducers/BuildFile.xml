@@ -8,7 +8,7 @@
 <use   name="L1Trigger/L1TCommon"/>
 <use   name="L1Trigger/L1TGlobal"/>
 <use   name="L1Trigger/L1TMuonBarrel"/>
-<use   name="L1Trigger/L1TMuonEndCap"/>
+<use   name="L1Trigger/L1TMuonEndcap"/>
 <use   name="L1Trigger/L1TMuonOverlap"/>
 <use   name="xerces-c"/>
 <use   name="utm"/>

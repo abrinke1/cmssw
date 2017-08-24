@@ -5,30 +5,30 @@
 #include <map>
 
 #include "CondTools/L1TriggerExt/interface/L1ConfigOnlineProdBaseExt.h"
-#include "CondFormats/L1TObjects/interface/L1TMuonEndCapParams.h"
+#include "CondFormats/L1TObjects/interface/L1TMuonEndcapParams.h"
 #include "CondFormats/DataRecord/interface/L1TMuonEndcapParamsRcd.h"
 #include "CondFormats/DataRecord/interface/L1TMuonEndcapParamsO2ORcd.h"
-#include "L1Trigger/L1TMuonEndCap/interface/EndCapParamsHelper.h"
+#include "L1Trigger/L1TMuonEndcap/interface/EndCapParamsHelper.h"
 #include "L1Trigger/L1TCommon/interface/TriggerSystem.h"
 #include "L1Trigger/L1TCommon/interface/XmlConfigParser.h"
 #include "OnlineDBqueryHelper.h"
 
-class L1TMuonEndcapParamsOnlineProd : public L1ConfigOnlineProdBaseExt<L1TMuonEndcapParamsO2ORcd,L1TMuonEndCapParams> {
+class L1TMuonEndcapParamsOnlineProd : public L1ConfigOnlineProdBaseExt<L1TMuonEndcapParamsO2ORcd,L1TMuonEndcapParams> {
 private:
 public:
-    virtual std::shared_ptr<L1TMuonEndCapParams> newObject(const std::string& objectKey, const L1TMuonEndcapParamsO2ORcd& record) override ;
+    virtual std::shared_ptr<L1TMuonEndcapParams> newObject(const std::string& objectKey, const L1TMuonEndcapParamsO2ORcd& record) override ;
 
     L1TMuonEndcapParamsOnlineProd(const edm::ParameterSet&);
     ~L1TMuonEndcapParamsOnlineProd(void){}
 };
 
-L1TMuonEndcapParamsOnlineProd::L1TMuonEndcapParamsOnlineProd(const edm::ParameterSet& iConfig) : L1ConfigOnlineProdBaseExt<L1TMuonEndcapParamsO2ORcd,L1TMuonEndCapParams>(iConfig){}
+L1TMuonEndcapParamsOnlineProd::L1TMuonEndcapParamsOnlineProd(const edm::ParameterSet& iConfig) : L1ConfigOnlineProdBaseExt<L1TMuonEndcapParamsO2ORcd,L1TMuonEndcapParams>(iConfig){}
 
-std::shared_ptr<L1TMuonEndCapParams> L1TMuonEndcapParamsOnlineProd::newObject(const std::string& objectKey, const L1TMuonEndcapParamsO2ORcd& record) {
+std::shared_ptr<L1TMuonEndcapParams> L1TMuonEndcapParamsOnlineProd::newObject(const std::string& objectKey, const L1TMuonEndcapParamsO2ORcd& record) {
     using namespace edm::es;
 
     const L1TMuonEndcapParamsRcd& baseRcd = record.template getRecord< L1TMuonEndcapParamsRcd >() ;
-    edm::ESHandle< L1TMuonEndCapParams > baseSettings ;
+    edm::ESHandle< L1TMuonEndcapParams > baseSettings ;
     baseRcd.get( baseSettings ) ;
 
 
@@ -72,6 +72,18 @@ std::shared_ptr<L1TMuonEndCapParams> L1TMuonEndcapParamsOnlineProd::newObject(co
         throw std::runtime_error("Broken key");
     }
 
+    // for debugging purposes dump the configs to local files
+    {
+        std::ofstream output(std::string("/tmp/").append(hw_key.substr(0,hw_key.find("/"))).append(".xml"));
+        output << hw_payload;
+        output.close();
+    }
+    {
+        std::ofstream output(std::string("/tmp/").append(algo_key.substr(0,algo_key.find("/"))).append(".xml"));
+        output << algo_payload;
+        output.close();
+    }
+
     l1t::XmlConfigParser xmlRdr;
     l1t::TriggerSystem trgSys;
 
@@ -88,14 +100,19 @@ std::shared_ptr<L1TMuonEndCapParams> L1TMuonEndcapParamsOnlineProd::newObject(co
     std::string core_fwv = conf["core_firmware_version"].getValueAsStr();
     tm brokenTime;
     strptime(core_fwv.c_str(), "%Y-%m-%d %T", &brokenTime);
-    time_t sinceEpoch = timegm(&brokenTime);
+    time_t fw_sinceEpoch = timegm(&brokenTime);
 
-    l1t::EndCapParamsHelper data( new L1TMuonEndCapParams() );
+    std::string pclut_v = conf["pc_lut_version"].getValueAsStr();
+    strptime(pclut_v.c_str(), "%Y-%m-%d", &brokenTime);
+    time_t pclut_sinceEpoch = timegm(&brokenTime);
 
-    data.SetFirmwareVersion( sinceEpoch );
+    l1t::EndCapParamsHelper data( new L1TMuonEndcapParams() );
+
+    data.SetFirmwareVersion( fw_sinceEpoch );
     data.SetPtAssignVersion( conf["pt_lut_version"].getValue<unsigned int>() );
+    data.SetPrimConvVersion( pclut_sinceEpoch );
 
-    std::shared_ptr< L1TMuonEndCapParams > retval( data.getWriteInstance() ); 
+    std::shared_ptr< L1TMuonEndcapParams > retval( data.getWriteInstance() ); 
 
     return retval;
 }

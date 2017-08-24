@@ -68,7 +68,7 @@ process.L1TriggerKeyDummyExt.tscKey = cms.string('dummyTransientKey_' + options.
 process.L1TriggerKeyDummyExt.objectKeys = cms.VPSet(
     cms.PSet(
         record = cms.string('L1TMuonEndcapParamsO2ORcd'),
-        type = cms.string('L1TMuonEndCapParams'),
+        type = cms.string('L1TMuonEndcapParams'),
         key = cms.string(options.tscKey)
     )
 )

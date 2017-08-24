@@ -9,7 +9,7 @@ process.MessageLogger.debugModules = cms.untracked.vstring('*')
 process.source = cms.Source("EmptySource")
 process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 
-process.load('L1Trigger.L1TMuonEndCap.fakeEmtfParams_cff')
+process.load('L1Trigger.L1TMuonEndcap.fakeEmtfParams_cff')
 process.load('L1Trigger.L1TMuonBarrel.fakeBmtfParams_cff')
 process.load('L1Trigger.L1TMuon.fakeGmtParams_cff')
 #process.load('L1Trigger.L1TCalorimeter.caloStage2Params_2016_v3_3_HI_cfi')

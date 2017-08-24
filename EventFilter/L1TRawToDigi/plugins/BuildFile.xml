@@ -9,7 +9,7 @@
 <use name="L1Trigger/L1TCalorimeter"/>
 <use name="L1Trigger/L1TGlobal"/>
 <use name="L1Trigger/L1TMuon"/>
-<use name="L1Trigger/L1TMuonEndCap"/>
+<use name="L1Trigger/L1TMuonEndcap"/>
 <use name="EventFilter/L1TRawToDigi"/>
 <flags EDM_PLUGIN="1"/>
 <flags ADD_SUBDIR="1"/>

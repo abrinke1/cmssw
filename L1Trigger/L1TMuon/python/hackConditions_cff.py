@@ -27,5 +27,5 @@ from Configuration.Eras.Modifier_stage2L1Trigger_cff import stage2L1Trigger
 if stage2L1Trigger.isChosen():
     from L1Trigger.L1TMuonBarrel.fakeBmtfParams_cff import *
     from L1Trigger.L1TMuonOverlap.fakeOmtfParams_cff import *
-    from L1Trigger.L1TMuonEndCap.fakeEmtfParams_cff import *
+    from L1Trigger.L1TMuonEndcap.fakeEmtfParams_cff import *
     from L1Trigger.L1TMuon.fakeGmtParams_cff import *

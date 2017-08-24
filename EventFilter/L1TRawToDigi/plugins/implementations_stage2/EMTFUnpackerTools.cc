@@ -26,8 +26,8 @@ namespace l1t {
 	_hit.set_subsystem  ( 1 );
 	// _hit.set_layer();
 
-	_hit.set_ring    ( L1TMuonEndCap::calc_ring( _hit.Station(), _hit.CSC_ID(), _hit.Strip() ) );
-	_hit.set_chamber ( L1TMuonEndCap::calc_chamber( _hit.Station(), _hit.Sector(),
+	_hit.set_ring    ( L1TMuonEndcap::calc_ring( _hit.Station(), _hit.CSC_ID(), _hit.Strip() ) );
+	_hit.set_chamber ( L1TMuonEndcap::calc_chamber( _hit.Station(), _hit.Sector(),
 							_hit.Subsector(), _hit.Ring(), _hit.CSC_ID() ) );
 
         _hit.SetCSCDetId   ( _hit.CreateCSCDetId() );
@@ -60,10 +60,10 @@ namespace l1t {
         // _hit.SetRPCDigi  ( _hit.CreateRPCDigi() );
 
 	// Convert integer values to degrees
-        _hit.set_phi_loc  ( L1TMuonEndCap::calc_phi_loc_deg        ( _hit.Phi_fp() ) );
-        _hit.set_phi_glob ( L1TMuonEndCap::calc_phi_glob_deg       ( _hit.Phi_loc(), _hit.Sector() ) );
-        _hit.set_theta    ( L1TMuonEndCap::calc_theta_deg_from_int ( _hit.Theta_fp() ) );
-        _hit.set_eta      ( L1TMuonEndCap::calc_eta_from_theta_deg ( _hit.Theta(), _hit.Endcap() ) );
+        _hit.set_phi_loc  ( L1TMuonEndcap::calc_phi_loc_deg        ( _hit.Phi_fp() ) );
+        _hit.set_phi_glob ( L1TMuonEndcap::calc_phi_glob_deg       ( _hit.Phi_loc(), _hit.Sector() ) );
+        _hit.set_theta    ( L1TMuonEndcap::calc_theta_deg_from_int ( _hit.Theta_fp() ) );
+        _hit.set_eta      ( L1TMuonEndcap::calc_eta_from_theta_deg ( _hit.Theta(), _hit.Endcap() ) );
 	
 	// Station, Ring, Sector, Subsector, Neighbor, and PC/FS/BT_segment filled in
 	// EventFilter/L1TRawToDigi/src/implementations_stage2/EMTFBlockRPC.cc - AWB 02.05.17
@@ -85,9 +85,9 @@ namespace l1t {
 	_track.set_charge     ( (_SP.C() == 1) ? -1 : 1 ); // uGMT uses opposite of physical charge (to match pdgID)
 	_track.set_bx         ( _SP.TBIN() - 3 );     
 	_track.set_phi_fp     ( _SP.Phi_full() );  
-	_track.set_phi_loc    ( L1TMuonEndCap::calc_phi_loc_deg ( _SP.Phi_full() ) );
-	_track.set_phi_glob   ( L1TMuonEndCap::calc_phi_glob_deg( _track.Phi_loc(), _track.Sector() ) );
-	_track.set_eta        ( L1TMuonEndCap::calc_eta( _SP.Eta_GMT() ) );
+	_track.set_phi_loc    ( L1TMuonEndcap::calc_phi_loc_deg ( _SP.Phi_full() ) );
+	_track.set_phi_glob   ( L1TMuonEndcap::calc_phi_glob_deg( _track.Phi_loc(), _track.Sector() ) );
+	_track.set_eta        ( L1TMuonEndcap::calc_eta( _SP.Eta_GMT() ) );
 	_track.set_pt         ( (_SP.Pt_GMT() - 1) * 0.5 );
 
 	_track.set_gmt_pt     ( _SP.Pt_GMT() );
