@@ -269,7 +269,7 @@ namespace l1t {
 	      Track_.push_Hit( (*Hit) );
 	      mu_.setTrackSubAddress( RegionalMuonCand::kME1Seg, SP_.ME1_stub_num() );
 	      mu_.setTrackSubAddress( RegionalMuonCand::kME1Ch,  
-				      L1TMuonEndcap::calc_uGMT_chamber( conv_vals_SP.at(0), 
+				      L1TMuonEndCap::calc_uGMT_chamber( conv_vals_SP.at(0), 
 									conv_vals_SP.at(2), 
 									conv_vals_SP.at(3), 1) );
 	    }
@@ -295,7 +295,7 @@ namespace l1t {
 	      Track_.push_Hit( (*Hit) );
 	      mu_.setTrackSubAddress( RegionalMuonCand::kME2Seg, SP_.ME2_stub_num() );
 	      mu_.setTrackSubAddress( RegionalMuonCand::kME2Ch,  
-				      L1TMuonEndcap::calc_uGMT_chamber( conv_vals_SP.at(0), 
+				      L1TMuonEndCap::calc_uGMT_chamber( conv_vals_SP.at(0), 
 									conv_vals_SP.at(2), 
 									conv_vals_SP.at(3), 2) );
 	    }
@@ -321,7 +321,7 @@ namespace l1t {
 	      Track_.push_Hit( (*Hit) );
 	      mu_.setTrackSubAddress( RegionalMuonCand::kME3Seg, SP_.ME3_stub_num() );
 	      mu_.setTrackSubAddress( RegionalMuonCand::kME3Ch,  
-				      L1TMuonEndcap::calc_uGMT_chamber( conv_vals_SP.at(0), 
+				      L1TMuonEndCap::calc_uGMT_chamber( conv_vals_SP.at(0), 
 									conv_vals_SP.at(2), 
 									conv_vals_SP.at(3), 3) );
 	    }
@@ -347,7 +347,7 @@ namespace l1t {
 	      Track_.push_Hit( (*Hit) );
 	      mu_.setTrackSubAddress( RegionalMuonCand::kME4Seg, SP_.ME4_stub_num() );
 	      mu_.setTrackSubAddress( RegionalMuonCand::kME4Ch,  
-				      L1TMuonEndcap::calc_uGMT_chamber( conv_vals_SP.at(0), 
+				      L1TMuonEndCap::calc_uGMT_chamber( conv_vals_SP.at(0), 
 									conv_vals_SP.at(2), 
 									conv_vals_SP.at(3), 4) );
 	    }
