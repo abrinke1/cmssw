@@ -2,6 +2,12 @@
 #include "CondFormats/L1TObjects/interface/L1TMuonEndcapParams.h"
 #include "CondFormats/DataRecord/interface/L1TMuonEndcapParamsRcd.h"
 #include "CondFormats/DataRecord/interface/L1TMuonEndcapParamsO2ORcd.h"
+#include "CondFormats/L1TObjects/interface/L1TMuonEndCapForest.h"
+#include "CondFormats/DataRecord/interface/L1TMuonEndCapForestRcd.h"
+
+#include "CondFormats/L1TObjects/interface/L1TMuonEndCapForest.h"
+#include "CondFormats/DataRecord/interface/L1TMuonEndCapForestRcd.h"
+#include "CondFormats/DataRecord/interface/L1TMuonEndCapForestO2ORcd.h"
 
 #include "CondFormats/L1TObjects/interface/L1TMuonOverlapParams.h"
 #include "CondFormats/DataRecord/interface/L1TMuonOverlapParamsRcd.h"
