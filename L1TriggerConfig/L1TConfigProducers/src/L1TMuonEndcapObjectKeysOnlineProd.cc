@@ -23,7 +23,7 @@ void L1TMuonEndcapObjectKeysOnlineProd::fillObjectKeys( ReturnType pL1TriggerKey
 
     // simply assign the algo key to the record
     pL1TriggerKey->add( "L1TMuonEndcapParamsO2ORcd",
-                        "L1TMuonEndCapParams",
+                        "L1TMuonEndcapParams",
                         EMTFKey) ;
 
 }

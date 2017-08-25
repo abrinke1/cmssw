@@ -13,8 +13,8 @@ process.maxEvents = cms.untracked.PSet( input = cms.untracked.int32(1) )
 process.load("CondTools.L1Trigger.L1TriggerKeyListDummy_cff")
 process.load("CondTools.L1Trigger.L1TriggerKeyDummy_cff")
 process.L1TriggerKeyDummy.objectKeys = cms.VPSet(cms.PSet(
-    record = cms.string("L1TMuonEndCapParamsRcd"),
-    type   = cms.string("L1TMuonEndCapParams"),
+    record = cms.string("L1TMuonEndcapParamsRcd"),
+    type   = cms.string("L1TMuonEndcapParams"),
     key    = cms.string("dummy")
 ))
 

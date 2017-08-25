@@ -11,7 +11,7 @@
     <field name="uparams_" mapping="blob"/>  
   </class>
 
-  <class name="L1TMuonEndCapParams">
+  <class name="L1TMuonEndcapParams">
   </class>
 
   <class name="L1TMuonEndCapForest::DTree"/>

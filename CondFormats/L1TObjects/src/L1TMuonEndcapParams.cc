@@ -1,1 +1,1 @@
-#include "CondFormats/L1TObjects/interface/L1TMuonEndCapParams.h"
+#include "CondFormats/L1TObjects/interface/L1TMuonEndcapParams.h"

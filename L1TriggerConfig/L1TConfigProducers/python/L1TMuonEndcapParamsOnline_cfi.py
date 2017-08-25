@@ -10,7 +10,7 @@ l1emtfparProtodb = cms.ESSource("PoolDBESSource",
        toGet   = cms.VPSet(
             cms.PSet(
                 record = cms.string('L1TMuonEndcapParamsRcd'),
-                tag = cms.string('L1TMuonEndCapParamsPrototype_Stage2v0_hlt')
+                tag = cms.string('L1TMuonEndcapParamsPrototype_Stage2v0_hlt')
             )
        )
 )
