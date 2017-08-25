@@ -18,7 +18,7 @@ process.L1TriggerKeyDummy.objectKeys = cms.VPSet(cms.PSet(
     key    = cms.string("dummy")
 ))
 
-process.load('L1Trigger.L1TMuonEndCap.fakeMuonEndCapParams_cfi')
+process.load('L1Trigger.L1TMuonEndCap.fakeMuonEndcapParams_cfi')
 process.getter = cms.EDAnalyzer("EventSetupRecordDataGetter",
    toGet = cms.VPSet(
       cms.PSet(record = cms.string('L1TMuonEndcapParamsRcd'),
