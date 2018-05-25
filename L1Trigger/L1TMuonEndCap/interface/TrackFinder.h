@@ -11,6 +11,8 @@
 #include "FWCore/Framework/interface/ConsumesCollector.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
 
+#include "L1Trigger/CSCCommonTrigger/interface/CSCConstants.h"  // For LCT_CENTRAL_BX
+
 #include "L1Trigger/L1TMuonEndCap/interface/SectorProcessor.h"
 
 
@@ -30,6 +32,8 @@ public:
 private:
   GeometryTranslator geometry_translator_;
 
+  TTGeometryTranslator ttgeometry_translator_;
+
   ConditionHelper condition_helper_;
 
   SectorProcessorLUT sector_processor_lut_;
@@ -40,11 +44,11 @@ private:
 
   const edm::ParameterSet config_;
 
-  const edm::EDGetToken tokenCSC_, tokenRPC_, tokenGEM_;
+  const edm::EDGetToken tokenCSC_, tokenRPC_, tokenGEM_, tokenIRPC_, tokenME0_, tokenTT_;
 
   int verbose_, primConvLUT_;
 
-  bool fwConfig_, useCSC_, useRPC_, useGEM_;
+  bool fwConfig_, useCSC_, useRPC_, useGEM_, useIRPC_, useME0_, useTT_;
 
   std::string era_;
 };

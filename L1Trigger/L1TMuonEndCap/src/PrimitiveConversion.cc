@@ -592,7 +592,10 @@ void PrimitiveConversion::convert_rpc_details(EMTFHit& conv_hit) const {
   int th  = conv_hit.Theta_fp();
 
   bool use_cppf_coords = true;
-  if (use_cppf_coords) {
+#ifdef PHASE_TWO_TRIGGER
+  use_cppf_coords = false;  // The CPPF LUTs fail for Phase 2 geometry
+#endif
+  if (use_cppf_coords && is_valid_for_run2(conv_hit)) {
     int halfstrip = (conv_hit.Strip_low() + conv_hit.Strip_hi() - 1);
     if (not(1 <= halfstrip && halfstrip <= 64))
       { edm::LogError("L1T") << "halfstrip = " << halfstrip; return; }
@@ -679,6 +682,8 @@ void PrimitiveConversion::convert_gem(
   int tp_bx        = tp_data.bx;
   int tp_strip     = ((tp_data.pad_low + tp_data.pad_hi) / 2);  // in full-strip unit
 
+  const bool is_me0 = tp_data.isME0;
+
   // Use CSC trigger sector definitions
   // Code copied from DataFormats/MuonDetId/src/CSCDetId.cc
   auto get_trigger_sector = [](int ring, int station, int chamber) {
@@ -727,6 +732,7 @@ void PrimitiveConversion::convert_gem(
   // station 1 --> subsector 1 or 2
   // station 2,3,4 --> subsector 0
   int tp_subsector = (tp_station != 1) ? 0 : ((tp_chamber%6 > 2) ? 1 : 2);
+  if (is_me0)  tp_subsector = 2;
 
   const bool is_neighbor = (pc_station == 5);
 
@@ -745,7 +751,12 @@ void PrimitiveConversion::convert_gem(
   }
 
   // Set properties
-  //conv_hit.SetGEMDetId     ( tp_detId );  // Temporarily disable, caused compile error - AWB 12.04.2018
+  //conv_hit.SetGEMDetId       ( tp_detId );
+  if (!is_me0) {
+    conv_hit.SetGEMDetId       ( tp_detId.getGEMDetId() );
+  } else {
+    conv_hit.SetME0DetId       ( tp_detId.getME0DetId() );
+  }
 
   conv_hit.set_endcap        ( (tp_endcap == 2) ? -1 : tp_endcap );
   conv_hit.set_station       ( tp_station );
@@ -802,6 +813,25 @@ void PrimitiveConversion::convert_gem(
     // Use the CSC precision (unconfirmed!)
     int fph = emtf::calc_phi_loc_int(glob_phi, conv_hit.PC_sector());
     int th  = emtf::calc_theta_int(glob_theta, conv_hit.Endcap());
+
+    if (is_me0) {
+      // The ME0 chamber 1 starts at -10 deg. The CSC chamber 1 starts at -5 deg.
+      // This 5 deg difference unfortunately causes the local phi coord to go
+      // out of bound. This is because the local phi 0 is set to the CSC chamber
+      // edge minus 22 deg to accommodate for the neighbor chamber. However, it
+      // is possible for the ME0 neighbor chamber to go to as far as the CSC
+      // chamber edge minus 25 deg.
+      double loc = emtf::calc_phi_loc_deg_from_glob(glob_phi, conv_hit.PC_sector());
+      if ((loc + 22.) < 0.&& (loc + 27.) > 0.)
+        fph = 0;
+      else if ((loc + 360. + 22.) < 0.&& (loc + 360. + 27.) > 0.)
+        fph = 0;
+
+      // The ME0 extends to eta of 2.8 or theta of 7.0 deg. But integer theta
+      // starts from theta of 8.5 deg.
+      if (th < 0)
+        th = 0;
+    }
 
     if (not(0 <= fph && fph < 5000))
       { edm::LogError("L1T") << "fph = " << fph; return; }
@@ -979,9 +1009,14 @@ int PrimitiveConversion::get_fs_segment(const EMTFHit& conv_hit, int fw_station,
     fs_chamber = is_neighbor ? 0 : 1+n;
   }
 
+
+#ifdef PHASE_TWO_TRIGGER
+  // No fs check
+#else
   if (not(fs_history == 0 && (0 <= fs_chamber && fs_chamber < 7) && (0 <= fs_segment && fs_segment < 2)))
     { edm::LogError("L1T") << "fs_history = " << fs_history << ", fs_chamber = " << fs_chamber
 			   << ", fs_segment = " << fs_segment; return 0; }
+#endif
   // fs_segment is a 6-bit word, HHCCCS, encoding the segment number S in the chamber (1 or 2),
   // the chamber number CCC ("j" above: uniquely identifies chamber within station and ring),
   // and the history HH (0 for current BX, 1 for previous BX, 2 for BX before that)
@@ -1013,13 +1048,23 @@ int PrimitiveConversion::get_bt_segment(const EMTFHit& conv_hit, int fw_station,
   if (fw_station == 0 && bt_chamber >= 13)  // ME1 neighbor chambers 13,14,15 -> 10,11,12
     bt_chamber -= 3;
 
+#ifdef PHASE_TWO_TRIGGER
+  // No bt check
+#else
   if (not(bt_history == 0 && (0 <= bt_chamber && bt_chamber < 13) && (0 <= bt_segment && bt_segment < 2)))
     { edm::LogError("L1T") << "bt_history = " << bt_history << ", bt_chamber = " << bt_chamber
 			   << ", bt_segment = " << bt_segment; return 0; }
-
+#endif
   // bt_segment is a 7-bit word, HHCCCCS, encoding the segment number S in the chamber (1 or 2),
   // the chamber number CCCC ("j" above: uniquely identifies chamber within station and ring),
   // and the history HH (0 for current BX, 1 for previous BX, 2 for BX before that)
   bt_segment = ((bt_history & 0x3)<<5) | ((bt_chamber & 0xf)<<1) | (bt_segment & 0x1);
   return bt_segment;
+}
+
+bool PrimitiveConversion::is_valid_for_run2(const EMTFHit& conv_hit) const {
+  bool is_csc = conv_hit.Is_CSC();
+  bool is_rpc = conv_hit.Is_RPC();
+  bool is_irpc = conv_hit.Is_RPC() && ((conv_hit.Station() == 3 || conv_hit.Station() == 4) && (conv_hit.Ring() == 1));
+  return (is_csc || (is_rpc && !is_irpc));
 }

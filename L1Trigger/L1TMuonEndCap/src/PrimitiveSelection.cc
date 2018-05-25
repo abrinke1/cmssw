@@ -198,6 +198,13 @@ void PrimitiveSelection::process(
       typedef TriggerPrimitive value_type;
       bool operator()(const value_type& x) const {
         int sz = x.getRPCData().strip_hi - x.getRPCData().strip_low + 1;
+
+        const RPCDetId& tp_detId = x.detId<RPCDetId>();
+        int tp_station     = tp_detId.station();
+        int tp_ring        = tp_detId.ring();
+        const bool is_irpc = (tp_station == 3 || tp_station == 4) && (tp_ring == 1);
+        if (is_irpc)  sz /= 3;  // iRPC strip pitch is 3 times smaller than traditional RPC
+
         return sz > 3;
       }
     } cluster_size_cut;
@@ -258,19 +265,29 @@ void PrimitiveSelection::process(
         } else if (4 <= rpc_chm && rpc_chm <= 5) {  // RE4/2, RE4/3
            pc_station = 4;
            pc_chamber = 3 + rpc_sub;
+        } else if (rpc_chm == 6) {  // RE3/1
+          pc_station = 3;
+          pc_chamber = rpc_sub;
+        } else if (rpc_chm == 7) {  // RE4/1
+          pc_station = 4;
+          pc_chamber = rpc_sub;
         }
 
       } else {  // neighbor
-	pc_station = 5;
-	if (rpc_chm == 0) {  // RE1/2
-	  pc_chamber = 1;
-	} else if (rpc_chm == 1) {  // RE2/2
-	  pc_chamber = 4;
-	} else if (2 <= rpc_chm && rpc_chm <= 3) {  // RE3/2, RE3/3
-	  pc_chamber = 6;
-	} else if (4 <= rpc_chm && rpc_chm <= 5) {  // RE4/2, RE4/3
-	  pc_chamber = 8;
-	}
+        pc_station = 5;
+        if (rpc_chm == 0) {  // RE1/2
+          pc_chamber = 1;
+        } else if (rpc_chm == 1) {  // RE2/2
+          pc_chamber = 4;
+        } else if (2 <= rpc_chm && rpc_chm <= 3) {  // RE3/2, RE3/3
+          pc_chamber = 6;
+        } else if (4 <= rpc_chm && rpc_chm <= 5) {  // RE4/2, RE4/3
+          pc_chamber = 8;
+        } else if (rpc_chm == 6) {  // RE3/1
+          pc_chamber = 5;
+        } else if (rpc_chm == 7) {  // RE4/1
+          pc_chamber = 7;
+        }
       }
 
       if (not(pc_station != -1 && pc_chamber != -1))
@@ -615,6 +632,8 @@ int PrimitiveSelection::select_rpc(const TriggerPrimitive& muon_primitive) const
     int tp_bx        = tp_data.bx;
     int tp_strip     = tp_data.strip;
 
+    const bool is_irpc = (tp_station == 3 || tp_station == 4) && (tp_ring == 1);
+
     if ( !(tp_region != 0) ) {
       edm::LogWarning("L1T") << "EMTF RPC format error: tp_region = "  << tp_region; return selected; }
     if ( !(emtf::MIN_ENDCAP <= tp_endcap && tp_endcap <= emtf::MAX_ENDCAP) ) {
@@ -625,14 +644,16 @@ int PrimitiveSelection::select_rpc(const TriggerPrimitive& muon_primitive) const
       edm::LogWarning("L1T") << "EMTF RPC format error: tp_subsector = "  << tp_subsector; return selected; } 
     if ( !(1 <= tp_station && tp_station <= 4) ) {
       edm::LogWarning("L1T") << "EMTF RPC format error: tp_station = " << tp_station; return selected; }
-    if ( !(2 <= tp_ring && tp_ring <= 3) ) {
-      edm::LogWarning("L1T") << "EMTF RPC format error: tp_ring = " << tp_ring; return selected; }
-    if ( !(1 <= tp_roll && tp_roll <= 3) ) {
-      edm::LogWarning("L1T") << "EMTF RPC format error: tp_roll = "  << tp_roll; return selected; }
-    if ( !(1 <= tp_strip && tp_strip <= 32) ) {
-      edm::LogWarning("L1T") << "EMTF RPC format error: tp_data.strip = "   << tp_data.strip; return selected; }
     if ( !(tp_station > 2 || tp_ring != 3) ) {
       edm::LogWarning("L1T") << "EMTF RPC format error: tp_station = " << tp_station << ", tp_ring = " << tp_ring; return selected; }
+    if ( !((!is_irpc && 2 <= tp_ring && tp_ring <= 3) || (is_irpc && 1 <= tp_ring && tp_ring <= 3)) ) {
+      edm::LogWarning("L1T") << "EMTF RPC format error: is_irpc = " << is_irpc << ", tp_ring = " << tp_ring; return selected; }
+    if ( !((!is_irpc && 1 <= tp_roll && tp_roll <= 3) || (is_irpc && 1 <= tp_roll && tp_roll <= 5)) ) {
+      edm::LogWarning("L1T") << "EMTF RPC format error: is_irpc = " << is_irpc << ", tp_roll = " << tp_roll; return selected; }
+    if ( !((!is_irpc && 1 <= tp_strip && tp_strip <= 32) || (is_irpc && 1 <= tp_strip && tp_strip <= 192)) ) {
+      edm::LogWarning("L1T") << "EMTF RPC format error: is_irpc = " << is_irpc << ", tp_strip = " << tp_strip; return selected; }
+    if ( !(tp_data.valid == true) ) {
+      edm::LogWarning("L1T") << "EMTF RPC format error: tp_data.valid = " << tp_data.valid; return selected; }
 
 
     // Selection
@@ -651,17 +672,30 @@ bool PrimitiveSelection::is_in_sector_rpc(int tp_endcap, int tp_station, int tp_
   // RPC sector X, subsectors 1-2 corresponds to CSC sector X-1
   // RPC sector X, subsectors 3-6 corresponds to CSC sector X
   auto get_csc_sector = [](int tp_station, int tp_ring, int tp_sector, int tp_subsector) {
-    // 10 degree chamber
-    int corr = (tp_subsector < 3) ? (tp_sector == 1 ? +5 : -1) : 0;
-    return tp_sector + corr;
+    const bool is_irpc = (tp_station == 3 || tp_station == 4) && (tp_ring == 1);
+    if (is_irpc) {
+      // 20 degree chamber
+      int corr = (tp_subsector < 2) ? (tp_sector == 1 ? +5 : -1) : 0;
+      return tp_sector + corr;
+    } else {
+      // 10 degree chamber
+      int corr = (tp_subsector < 3) ? (tp_sector == 1 ? +5 : -1) : 0;
+      return tp_sector + corr;
+    }
   };
   return ((endcap_ == tp_endcap) && (sector_ == get_csc_sector(tp_station, tp_ring, tp_sector, tp_subsector)));
 }
 
 bool PrimitiveSelection::is_in_neighbor_sector_rpc(int tp_endcap, int tp_station, int tp_ring, int tp_sector, int tp_subsector) const {
   auto get_csc_neighbor_subsector = [](int tp_station, int tp_ring) {
-    // 10 degree chamber
-    return 2;
+    const bool is_irpc = (tp_station == 3 || tp_station == 4) && (tp_ring == 1);
+    if (is_irpc) {
+      // 20 degree chamber
+      return 1;
+    } else {
+      // 10 degree chamber
+      return 2;
+    }
   };
   return (includeNeighbor_ && (endcap_ == tp_endcap) && (sector_ == tp_sector) && (tp_subsector == get_csc_neighbor_subsector(tp_station, tp_ring)));
 }
@@ -698,6 +732,22 @@ int PrimitiveSelection::get_index_rpc(int tp_station, int tp_ring, int tp_subsec
     rpc_chm = 2 + (tp_station - 3)*2 + (tp_ring - 2);
   }
 
+  // Numbering for iRPC (20 degree chambers)
+  const bool is_irpc = (tp_station == 3 || tp_station == 4) && (tp_ring == 1);
+  if (is_irpc) {
+    if (!is_neighbor) {
+      rpc_sub = ((tp_subsector + 1) % 3);
+    } else {
+      rpc_sub = 6;
+    }
+
+    if (tp_station == 3) {
+      rpc_chm = 6;
+    } else if (tp_station == 4) {
+      rpc_chm = 7;
+    }
+  }
+
   if (not(rpc_sub != -1 && rpc_chm != -1))
     { edm::LogError("L1T") << "rpc_sub = " << rpc_sub << ", rpc_chm = " << rpc_chm; return selected; }
 
@@ -725,6 +775,8 @@ int PrimitiveSelection::select_gem(const TriggerPrimitive& muon_primitive) const
 
     int tp_bx        = tp_data.bx;
     int tp_pad       = tp_data.pad;
+
+    const bool is_me0 = tp_data.isME0;
 
     // Use CSC trigger sector definitions
     // Code copied from DataFormats/MuonDetId/src/CSCDetId.cc
@@ -757,6 +809,9 @@ int PrimitiveSelection::select_gem(const TriggerPrimitive& muon_primitive) const
         case 3:
           result += 6; // 7,8,9
           break;
+        case 4:  // ME0
+          result = (chamber+1) % 3 + 1; // 1,2,3
+          break;
         }
       }
       else {
@@ -776,7 +831,7 @@ int PrimitiveSelection::select_gem(const TriggerPrimitive& muon_primitive) const
     // station 1 --> subsector 1 or 2
     // station 2,3,4 --> subsector 0
     int tp_subsector = (tp_station != 1) ? 0 : ((tp_chamber%6 > 2) ? 1 : 2);
-
+    if (is_me0)  tp_subsector = 2;
 
     if ( !(emtf::MIN_ENDCAP <= tp_endcap && tp_endcap <= emtf::MAX_ENDCAP) ) {
       edm::LogWarning("L1T") << "EMTF GEM format error: tp_endcap = "  << tp_endcap; return selected; }
@@ -784,24 +839,18 @@ int PrimitiveSelection::select_gem(const TriggerPrimitive& muon_primitive) const
       edm::LogWarning("L1T") << "EMTF GEM format error: tp_sector = "  << tp_sector; return selected; }
     if ( !(1 <= tp_station && tp_station <= 2) ) {
       edm::LogWarning("L1T") << "EMTF GEM format error: tp_station = " << tp_station; return selected; }
-    if ( !(1 <= tp_ring && tp_ring <= 1) ) {
+    if ( !(tp_ring == 1 || tp_ring == 4) ) {
       edm::LogWarning("L1T") << "EMTF GEM format error: tp_ring = " << tp_ring; return selected; }
+    if ( !(1 <= tp_roll && tp_roll <= 8) ) {
+      edm::LogWarning("L1T") << "EMTF GEM format error: tp_roll = " << tp_roll; return selected; }
+    if ( !((!is_me0 && 1 <= tp_layer && tp_layer <= 2) || (is_me0 && 1 <= tp_layer && tp_layer <= 6)) ) {
+      edm::LogWarning("L1T") << "EMTF GEM format error: is_me0 = " << is_me0 << ", tp_layer = " << tp_layer; return selected; }
     if ( !(1 <= tp_csc_ID && tp_csc_ID <= 9) ) {
       edm::LogWarning("L1T") << "EMTF GEM format error: tp_csc_ID = "  << tp_csc_ID; return selected; }
-    if (!(tp_station == 1 && 1 <= tp_roll && tp_roll <= 8) || (tp_station != 1)) {
-      edm::LogWarning("L1T") << "EMTF GEM format error: tp_station = " << tp_station
-			     << ", tp_roll = " << tp_roll; return selected; }
-    if ( !(tp_station == 2 && 1 <= tp_roll && tp_roll <= 12) || (tp_station != 2)) {
-      edm::LogWarning("L1T") << "EMTF GEM format error: tp_station = " << tp_station
-			     << ", tp_roll = " << tp_roll; return selected; }
-    if ( !(1 <= tp_layer && tp_layer <= 2)) {
-      edm::LogWarning("L1T") << "EMTF GEM format error: tp_layer = " << tp_layer; return selected; }
     if ( !((tp_station == 1 && 1 <= tp_pad && tp_pad <= 192) || (tp_station != 1))) {
-	edm::LogWarning("L1T") << "EMTF GEM format error: tp_station = " << tp_station
-			       << ", tp_pad = " << tp_pad; return selected; }
-    if ( !((tp_station == 2 && 1 <= tp_pad && tp_pad <= 192) || (tp_station != 2))) {
-      edm::LogWarning("L1T") << "EMTF GEM format error: tp_station = " << tp_station
-			     << ", tp_pad = " << tp_pad; return selected; }
+	edm::LogWarning("L1T") << "EMTF GEM format error: tp_station = " << tp_station << ", tp_pad = " << tp_pad; return selected; }
+    if ( !((tp_station == 2 && 1 <= tp_pad && tp_pad <= 384) || (tp_station != 2)) ) {
+      edm::LogWarning("L1T") << "EMTF GEM format error: tp_station = " << tp_station << ", tp_pad = " << tp_pad; return selected; }
     
     // Selection
     if (is_in_bx_gem(tp_bx)) {
