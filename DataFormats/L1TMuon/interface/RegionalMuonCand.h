@@ -27,14 +27,14 @@ class RegionalMuonCand {
     explicit RegionalMuonCand(uint64_t dataword);
 
     RegionalMuonCand() :
-    m_hwPt(0),m_hwPt2(0),m_hwDXY(0),m_hwPhi(0), m_hwEta(0), m_hwHF(false), m_hwSign(0), m_hwSignValid(0), m_hwQuality(0),
+    m_hwPt(0),m_hwPtDispl(0),m_hwDXY(0),m_hwPhi(0), m_hwEta(0), m_hwHF(false), m_hwSign(0), m_hwSignValid(0), m_hwQuality(0),
       m_dataword(0)
       {
         setTFIdentifiers(0, bmtf);
       };
 
     RegionalMuonCand(int pt, int phi, int eta, int sign, int signvalid, int quality, int processor, tftype trackFinder) :
-    m_hwPt(pt),m_hwPt2(0),m_hwDXY(0),m_hwPhi(phi), m_hwEta(eta), m_hwHF(false), m_hwSign(sign), m_hwSignValid(signvalid), m_hwQuality(quality),
+    m_hwPt(pt),m_hwPtDispl(0),m_hwDXY(0),m_hwPhi(phi), m_hwEta(eta), m_hwHF(false), m_hwSign(sign), m_hwSignValid(signvalid), m_hwQuality(quality),
 	m_dataword(0)
       {
         setTFIdentifiers(processor, trackFinder);
@@ -49,7 +49,7 @@ class RegionalMuonCand {
       };
 
     RegionalMuonCand(int pt, int phi, int eta, int sign, int signvalid, int quality, int processor, tftype trackFinder, std::map<int, int> trackAddress) :
-    m_hwPt(pt) ,m_hwPt2(0),m_hwDXY(0),m_hwPhi(phi), m_hwEta(eta), m_hwHF(false), m_hwSign(sign), m_hwSignValid(signvalid), m_hwQuality(quality), m_trackAddress(trackAddress),
+    m_hwPt(pt) ,m_hwPtDispl(0),m_hwDXY(0),m_hwPhi(phi), m_hwEta(eta), m_hwHF(false), m_hwSign(sign), m_hwSignValid(signvalid), m_hwQuality(quality), m_trackAddress(trackAddress),
 	m_dataword(0)
       {
         setTFIdentifiers(processor, trackFinder);
@@ -60,7 +60,7 @@ class RegionalMuonCand {
     /// Set compressed pT as transmitted by hardware LSB = 0.5 (9 bits)
     void setHwPt(int bits) { m_hwPt = bits; };
     /// Set compressed second displaced  pT as transmitted by hardware LSB = 1.0 (8 bits)
-    void setHwPt2(int bits) { m_hwPt2 = bits; };
+    void setHwPtDispl(int bits) { m_hwPtDispl = bits; };
     /// Set compressed impact parameter with respect to beamspot (4 bits)
     void setHwDXY(int bits) { m_hwDXY = bits; };
     /// Set compressed relative phi as transmitted by hardware LSB = 2*pi/576 (8 bits)
@@ -104,7 +104,7 @@ class RegionalMuonCand {
     /// Get compressed pT (returned int * 0.5 = pT (GeV))
     const int hwPt() const { return m_hwPt; };
     /// Get second compressed pT (returned int * 1.0 = pT (GeV))
-    const int hwPt2() const { return m_hwPt2; };
+    const int hwPtDispl() const { return m_hwPtDispl; };
     /// Get compressed impact parameter (4 bits)
     const int hwDXY() const { return m_hwDXY; };
     /// Get compressed local phi (returned int * 2*pi/576 = local phi in rad)
@@ -154,7 +154,7 @@ class RegionalMuonCand {
 
   private:
     int m_hwPt;
-    int m_hwPt2;
+    int m_hwPtDispl;
     int m_hwDXY;
     int m_hwPhi;
     int m_hwEta;

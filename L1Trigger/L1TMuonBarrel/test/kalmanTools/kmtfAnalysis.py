@@ -34,7 +34,7 @@ class BMTFMuon:
 
 
     def ptUnconstrained(self):
-        return self.muon.hwPt2()
+        return self.muon.hwPtDispl()
 
 
     def dxy(self):

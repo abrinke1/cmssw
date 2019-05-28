@@ -109,7 +109,7 @@ L1TMuonBarrelKalmanAlgo::convertToBMTF(const L1MuKBMTrack& track) {
 
   l1t::RegionalMuonCand muon(pt,phi,eta,sign,signValid,quality,processor,l1t::bmtf,addr);
   muon.setHwHF(HF);
-  muon.setHwPt2(pt2);
+  muon.setHwPtDispl(pt2);
   muon.setHwDXY(dxy);
 
 

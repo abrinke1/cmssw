@@ -28,6 +28,7 @@ RegionalMuonCand::setTFIdentifiers(int processor, tftype trackFinder) {
 bool RegionalMuonCand::operator==(const RegionalMuonCand& rhs) const
 {
   return m_hwPt == rhs.hwPt()
+      && m_hwPtDispl == rhs.hwPtDispl()
       && m_hwPhi == rhs.hwPhi()
       && m_hwEta == rhs.hwEta()
       && m_hwHF == (bool)rhs.hwHF()
