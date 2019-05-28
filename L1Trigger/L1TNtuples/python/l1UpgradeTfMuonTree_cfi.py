@@ -5,6 +5,7 @@ l1UpgradeTfMuonTree = cms.EDAnalyzer(
     bmtfMuonToken = cms.untracked.InputTag("bmtfDigis","BMTF"),
     bmtfInputPhMuonToken = cms.untracked.InputTag("bmtfDigis",""),
     bmtfInputThMuonToken = cms.untracked.InputTag("bmtfDigis",""),
+    bmtfOutputMuonToken = cms.untracked.InputTag("simKBmtfDigis",""),
     omtfMuonToken = cms.untracked.InputTag("omtfDigis","OMTF"),
     emtfMuonToken = cms.untracked.InputTag("emtfDigis","EMTF"),
     maxL1UpgradeTfMuon = cms.uint32(60)

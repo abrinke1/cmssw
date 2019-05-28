@@ -173,6 +173,24 @@ def L1TReEmulFromRAW(process):
     print("# {0}".format(process.schedule))
     return process
 
+def L1TReEmulFromRAWKalmanMuon(process):
+    L1TReEmulFromRAW(process)
+
+    ## Load Kalman algo
+    process.load('L1Trigger.L1TMuonBarrel.simKBmtfStubs_cfi')
+    process.load('L1Trigger.L1TMuonBarrel.simKBmtfDigis_cfi')
+
+    process.simKBmtfStubs.srcTheta = cms.InputTag("bmtfDigis")
+    process.simKBmtfStubs.srcPhi = cms.InputTag("bmtfDigis")
+    process.simKBmtfDigis.algoSettings.useOfflineAlgo = cms.bool(False)
+
+    process.L1TReEmul = cms.Sequence( process.L1TReEmul + process.simKBmtfStubs + process.simKBmtfDigis )
+
+    print("# L1TReEmul sequence:  ")
+    print("# {0}".format(process.L1TReEmul))
+    print("# {0}".format(process.schedule))
+    return process
+
 def L1TReEmulFromRAWCalouGT(process):
     L1TReEmulFromRAW(process)
     process.simGtStage2Digis.MuonInputTag   = cms.InputTag("gtStage2Digis","Muon")

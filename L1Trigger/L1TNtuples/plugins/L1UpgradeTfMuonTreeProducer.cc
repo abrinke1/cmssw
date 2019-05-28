@@ -37,6 +37,7 @@ Implementation:
 
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisL1UpgradeTfMuon.h"
 #include "L1Trigger/L1TNtuples/interface/L1AnalysisBMTFInputs.h"
+#include "L1Trigger/L1TNtuples/interface/L1AnalysisBMTFOutput.h"
 
 //
 // class declaration
@@ -59,10 +60,12 @@ public:
   L1Analysis::L1AnalysisL1UpgradeTfMuon l1UpgradeOmtf;
   L1Analysis::L1AnalysisL1UpgradeTfMuon l1UpgradeEmtf;
   L1Analysis::L1AnalysisBMTFInputs  l1UpgradeBmtfInputs;
+  L1Analysis::L1AnalysisBMTFOutput  l1UpgradeBmtfOutput;
   L1Analysis::L1AnalysisL1UpgradeTfMuonDataFormat * l1UpgradeBmtfData; 
   L1Analysis::L1AnalysisL1UpgradeTfMuonDataFormat * l1UpgradeOmtfData;
   L1Analysis::L1AnalysisL1UpgradeTfMuonDataFormat * l1UpgradeEmtfData;
   L1Analysis::L1AnalysisBMTFInputsDataFormat * l1UpgradeBmtfInputsData;
+  L1Analysis::L1AnalysisBMTFOutputDataFormat * l1UpgradeBmtfOutputData;
 
 private:
 
@@ -81,6 +84,7 @@ private:
 
   edm::EDGetTokenT<L1MuDTChambPhContainer> bmtfPhInputToken_;
   edm::EDGetTokenT<L1MuDTChambThContainer> bmtfThInputToken_;
+  edm::EDGetTokenT<L1MuKBMTrackBxCollection> bmtfOutputToken_;
 
 };
 
@@ -93,8 +97,9 @@ L1UpgradeTfMuonTreeProducer::L1UpgradeTfMuonTreeProducer(const edm::ParameterSet
   omtfMuonToken_ = consumes<l1t::RegionalMuonCandBxCollection>(iConfig.getUntrackedParameter<edm::InputTag>("omtfMuonToken"));
   emtfMuonToken_ = consumes<l1t::RegionalMuonCandBxCollection>(iConfig.getUntrackedParameter<edm::InputTag>("emtfMuonToken"));
 
-  bmtfPhInputToken_ = consumes<L1MuDTChambPhContainer>(iConfig.getUntrackedParameter<edm::InputTag>("bmtfInputPhMuonToken"));
-  bmtfThInputToken_ = consumes<L1MuDTChambThContainer>(iConfig.getUntrackedParameter<edm::InputTag>("bmtfInputThMuonToken"));
+  bmtfPhInputToken_ = consumes<L1MuDTChambPhContainer>  (iConfig.getUntrackedParameter<edm::InputTag>("bmtfInputPhMuonToken"));
+  bmtfThInputToken_ = consumes<L1MuDTChambThContainer>  (iConfig.getUntrackedParameter<edm::InputTag>("bmtfInputThMuonToken"));
+  bmtfOutputToken_  = consumes<L1MuKBMTrackBxCollection>(iConfig.getUntrackedParameter<edm::InputTag>("bmtfOutputMuonToken"));
 
   maxL1UpgradeTfMuon_ = iConfig.getParameter<unsigned int>("maxL1UpgradeTfMuon");
  
@@ -103,6 +108,7 @@ L1UpgradeTfMuonTreeProducer::L1UpgradeTfMuonTreeProducer(const edm::ParameterSet
   l1UpgradeOmtfData = l1UpgradeOmtf.getData();
   l1UpgradeEmtfData = l1UpgradeEmtf.getData();
   l1UpgradeBmtfInputsData = l1UpgradeBmtfInputs.getData();
+  l1UpgradeBmtfOutputData = l1UpgradeBmtfOutput.getData();
 
   
   // set up output
@@ -112,6 +118,7 @@ L1UpgradeTfMuonTreeProducer::L1UpgradeTfMuonTreeProducer(const edm::ParameterSet
   tree_->Branch("L1UpgradeEmtfMuon", "L1Analysis::L1AnalysisL1UpgradeTfMuonDataFormat", &l1UpgradeEmtfData, 32000, 3);
 
   tree_->Branch("L1UpgradeBmtfInputs", "L1Analysis::L1AnalysisBMTFInputsDataFormat", &l1UpgradeBmtfInputsData, 32000, 3);
+  tree_->Branch("L1UpgradeBmtfOutput", "L1Analysis::L1AnalysisBMTFOutputDataFormat", &l1UpgradeBmtfOutputData, 32000, 3);
 
 
 }
@@ -135,6 +142,7 @@ L1UpgradeTfMuonTreeProducer::analyze(const edm::Event& iEvent, const edm::EventS
   l1UpgradeOmtf.Reset();
   l1UpgradeEmtf.Reset();
   l1UpgradeBmtfInputs.Reset();
+  l1UpgradeBmtfOutput.Reset();
 
 
   edm::Handle<l1t::RegionalMuonCandBxCollection> bmtfMuon;
@@ -142,12 +150,14 @@ L1UpgradeTfMuonTreeProducer::analyze(const edm::Event& iEvent, const edm::EventS
   edm::Handle<l1t::RegionalMuonCandBxCollection> emtfMuon;
   edm::Handle<L1MuDTChambPhContainer> bmtfPhInputs;
   edm::Handle<L1MuDTChambThContainer> bmtfThInputs;
+  edm::Handle<L1MuKBMTrackBxCollection> bmtfOutput;
 
   iEvent.getByToken(bmtfMuonToken_, bmtfMuon);
   iEvent.getByToken(omtfMuonToken_, omtfMuon);
   iEvent.getByToken(emtfMuonToken_, emtfMuon);
   iEvent.getByToken(bmtfPhInputToken_, bmtfPhInputs);
   iEvent.getByToken(bmtfThInputToken_, bmtfThInputs);
+  iEvent.getByToken(bmtfOutputToken_, bmtfOutput);
 
   if (bmtfMuon.isValid()){ 
     l1UpgradeBmtf.SetTfMuon(*bmtfMuon, maxL1UpgradeTfMuon_);
@@ -180,6 +190,12 @@ L1UpgradeTfMuonTreeProducer::analyze(const edm::Event& iEvent, const edm::EventS
     }
   else l1UpgradeBmtfInputs.SetBMTH(bmtfThInputs, max_inputs);
 
+  int max_output = maxL1UpgradeTfMuon_;
+
+  if (!bmtfOutput.isValid()) {
+    edm::LogWarning("MissingProduct") << "L1Upgrade BMTF Output not found. Branch will not be filled" << std::endl;
+    }
+  else l1UpgradeBmtfOutput.SetL1MuKBMTrack(bmtfOutput, max_output);
 
 
   tree_->Fill();
