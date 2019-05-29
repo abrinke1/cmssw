@@ -181,7 +181,7 @@ def L1TReEmulFromRAWKalmanMuon(process):
     process.load('L1Trigger.L1TMuonBarrel.simKBmtfDigis_cfi')
 
     process.simKBmtfStubs.srcTheta = cms.InputTag("bmtfDigis")
-    process.simKBmtfStubs.srcPhi = cms.InputTag("bmtfDigis")
+    process.simKBmtfStubs.srcPhi   = cms.InputTag("bmtfDigis")
     process.simKBmtfDigis.algoSettings.useOfflineAlgo = cms.bool(False)
 
     process.L1TReEmul = cms.Sequence( process.L1TReEmul + process.simKBmtfStubs + process.simKBmtfDigis )

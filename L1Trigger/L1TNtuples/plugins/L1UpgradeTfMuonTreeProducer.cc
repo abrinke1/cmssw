@@ -193,7 +193,8 @@ L1UpgradeTfMuonTreeProducer::analyze(const edm::Event& iEvent, const edm::EventS
   int max_output = maxL1UpgradeTfMuon_;
 
   if (!bmtfOutput.isValid()) {
-    edm::LogWarning("MissingProduct") << "L1Upgrade BMTF Output not found. Branch will not be filled" << std::endl;
+    // Suppress warning since bmtfOutput (from Kalman emulator) is only filled in l1UpgradeTfMuonEmuTree, not l1UpgradeTfMuonTree
+    // edm::LogWarning("MissingProduct") << "L1Upgrade BMTF Output not found. Branch will not be filled" << std::endl;
     }
   else l1UpgradeBmtfOutput.SetL1MuKBMTrack(bmtfOutput, max_output);
 

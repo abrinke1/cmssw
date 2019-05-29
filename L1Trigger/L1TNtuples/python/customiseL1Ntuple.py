@@ -232,6 +232,17 @@ def L1NtupleAODRAWEMU(process):
 
     return process
 
+def L1NtupleAODRAWEMUKalmanMuon(process):
+
+    L1NtupleRAW(process)
+    L1NtupleEMU(process)
+    L1NtupleAOD(process)
+
+    process.l1UpgradeTfMuonEmuTree.bmtfMuonToken       = cms.untracked.InputTag("simKBmtfDigis","BMTF")
+    process.l1UpgradeTfMuonEmuTree.bmtfOutputMuonToken = cms.untracked.InputTag("simKBmtfDigis","")
+
+    return process
+
 def L1NtupleAODRAWEMUCalo(process):
 
     L1NtupleRAWCalo(process)
