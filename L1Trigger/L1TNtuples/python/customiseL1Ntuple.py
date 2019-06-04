@@ -282,6 +282,19 @@ def L1NtupleRAWEMUGEN_MC(process):
 
     return process
 
+
+def L1NtupleRAWEMUGENKalmanMuon_MC(process):
+
+    L1NtupleRAW(process)
+    L1NtupleEMU(process)
+    L1NtupleGEN(process)
+
+    process.l1UpgradeTfMuonEmuTree.bmtfMuonToken       = cms.untracked.InputTag("simKBmtfDigis","BMTF")
+    process.l1UpgradeTfMuonEmuTree.bmtfOutputMuonToken = cms.untracked.InputTag("simKBmtfDigis","")
+
+    return process
+
+
 def L1NtupleAODEMUGEN_MC(process):
 
     L1NtupleEMU(process)
