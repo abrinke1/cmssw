@@ -28,16 +28,54 @@ void L1Analysis::L1AnalysisRecoMuon2::SetMuon(const edm::Event& event,
 
   recoMuon_.nMuons=0;
   
-  for(reco::MuonCollection::const_iterator it=muons->begin();
-      it!=muons->end() && recoMuon_.nMuons < maxMuon;
-      ++it) {
+  for( reco::MuonCollection::const_iterator it=muons->begin();
+       it!=muons->end() && recoMuon_.nMuons < maxMuon; ++it ) {
 
-    recoMuon_.e.push_back(it->energy());    
-    recoMuon_.pt.push_back(it->pt());    
-    recoMuon_.et.push_back(it->et());    
+    reco::Track track;
+    if      ( it->isGlobalMuon()  )    track = *(it->globalTrack());
+    else if ( it->isTrackerMuon() )    track = *(it->innerTrack());
+    else if ( it->isStandAloneMuon() ) track = *(it->standAloneMuon());
+    else {
+      // std::cout << "WARNING: The muon is neither global NOR tracker NOR stand-alone?!?  Skipping.\n";
+      continue;
+    }
+
+    recoMuon_.e.push_back(it->energy());
+    recoMuon_.pt.push_back(it->pt());
+    recoMuon_.et.push_back(it->et());
     recoMuon_.eta.push_back(it->eta());
     recoMuon_.phi.push_back(it->phi());
     recoMuon_.charge.push_back(it->charge());
+    recoMuon_.chi2.push_back(track.normalizedChi2());
+    if ( it->isStandAloneMuon() ) {
+      recoMuon_.ptSAM.push_back(it->standAloneMuon()->pt());
+      recoMuon_.etaSAM.push_back(it->standAloneMuon()->eta());
+      recoMuon_.phiSAM.push_back(it->standAloneMuon()->phi());
+      recoMuon_.chargeSAM.push_back(it->standAloneMuon()->charge());
+      recoMuon_.chi2SAM.push_back(it->standAloneMuon()->normalizedChi2());
+    } else {
+      recoMuon_.ptSAM.push_back(-9999);
+      recoMuon_.etaSAM.push_back(-9999);
+      recoMuon_.phiSAM.push_back(-9999);
+      recoMuon_.chargeSAM.push_back(-9999);
+      recoMuon_.chi2SAM.push_back(-9999);
+    }
+    if (vertices.isValid()) {
+      recoMuon_.dxy.push_back(track.dxy( (*vertices)[0].position() ));
+      recoMuon_.dz.push_back(track.dz( (*vertices)[0].position() ));
+      if ( it->isStandAloneMuon() ) {
+	recoMuon_.dxySAM.push_back(it->standAloneMuon()->dxy( (*vertices)[0].position() ));
+	recoMuon_.dzSAM.push_back(it->standAloneMuon()->dz( (*vertices)[0].position() ));
+      } else {
+	recoMuon_.dxySAM.push_back(-9999);
+	recoMuon_.dzSAM.push_back(-9999);
+      }
+    } else {
+      recoMuon_.dxy.push_back(-9999);
+      recoMuon_.dxySAM.push_back(-9999);
+      recoMuon_.dz.push_back(-9999);
+      recoMuon_.dzSAM.push_back(-9999);
+    }
 
     //check isLooseMuon
     bool flagLoose = isLooseMuonCustom(*it);
