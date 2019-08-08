@@ -135,7 +135,7 @@ def L1TReEmulFromRAW2016(process):
     #    process.SimL1Emulator.remove(getattr(process,b))
     # TwinMux
     stage2L1Trigger.toModify(process.simTwinMuxDigis,
-        RPC_Source         = 'RPCTwinMuxRawToDigi',
+        RPC_Source         = 'rpcTwinMuxRawToDigi',  ## See https://github.com/cms-l1t-offline/cmssw/pull/759/files
         DTDigi_Source      = 'twinMuxStage2Digis:PhIn',
         DTThetaDigi_Source = 'twinMuxStage2Digis:ThIn'
     )
