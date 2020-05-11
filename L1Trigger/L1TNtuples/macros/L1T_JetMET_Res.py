@@ -23,6 +23,7 @@ PT_CAT['medPt'] = [60,  90,   90]  ## Low pT, turn-on threshold, high pT
 PT_CAT['hiPt']  = [90, 120, 9999]  ## Low pT, turn-on threshold, high pT
 
 ETA_CAT = {}
+ETA_CAT['HBEF'] = [0.000, 5.210]  ## Whole detector, 1 - 41
 ETA_CAT['HB']   = [0.000, 1.392]  ## Trigger towers  1 - 16
 ETA_CAT['HE1']  = [1.392, 1.740]  ## Trigger towers 17 - 20
 ETA_CAT['HE2a'] = [1.740, 2.322]  ## Trigger towers 21 - 25
@@ -36,10 +37,10 @@ def main():
     print '\nInside L1T_JetMET_Res\n'
 
     in_file_names = []
-    in_file_names.append('output/L1Ntuple_HCAL_Original_nVtxMin_50_100k.root')
+    # in_file_names.append('output/L1Ntuple_HCAL_Original_nVtxMin_50_100k.root')
     # in_file_names.append('output/L1Ntuple_HCAL_TP_OOT_PUS_nVtxMax_12_nSamp_1_nPresamp_0_HB_1p0_HE1_1p0_HE2_1p0_100k.root')
     in_file_names.append('output/L1Ntuple_HCAL_TP_OOT_PUS_nVtxMin_40_nSamp_2_nPresamp_0_HB_1p0_1p0_HE1_1p0_1p0_HE2_1p0_1p0_100k.root')
-    in_file_names.append('output/L1Ntuple_HCAL_TP_OOT_PUS_nVtxMin_50_nSamp_2_nPresamp_1_HB_n0p51_1p0_HE1_n0p49_1p0_HE2_n0p45_1p0_100k.root')
+    in_file_names.append('output/L1Ntuple_HCAL_TP_OOT_PUS_nVtxMin_40_nSamp_2_nPresamp_1_HB_n0p51_1p0_HE1_n0p49_1p0_HE2_n0p45_1p0_100k.root')
 
     if not os.path.exists('plots'): os.makedirs('plots')
 
@@ -218,9 +219,10 @@ def main():
                 ## Pick the |eta| and pT categories
                 iEta = 'None'
                 for iCat in ETA_CAT.keys():
+                    if iCat == 'HBEF': continue
                     if abs(vOff.Eta()) > ETA_CAT[iCat][0] and abs(vOff.Eta()) < ETA_CAT[iCat][1]:
                         iEta = iCat
-                if iEta == 'None':
+                if iEta == 'None' or iEta == 'HBEF':
                     print '\n\nSUPER-BIZZARE JET THAT FALLS INTO NO ETA CATEGORIES!!!  eta = %.3f\n\n' % vOff.Eta()
                     continue
 
@@ -263,46 +265,48 @@ def main():
 
 
                 ## Re-set the |eta| categories based on emulated and unpacked L1T jet eta, if there is a match
-                uEta = 'None'
-                eEta = 'None'
+                unpEta = 'None'
+                emuEta = 'None'
                 if max_pt_unp > 0:
                     for iCat in ETA_CAT.keys():
                         if abs(vMaxUnp.Eta()) > ETA_CAT[iCat][0] and abs(vMaxUnp.Eta()) < ETA_CAT[iCat][1]:
-                            uEta = iCat
-                else:       uEta = iEta
+                            unpEta = iCat
+                else:       unpEta = iEta
                 if max_pt_emu > 0:
                     for iCat in ETA_CAT.keys():
                         if abs(vMaxEmu.Eta()) > ETA_CAT[iCat][0] and abs(vMaxEmu.Eta()) < ETA_CAT[iCat][1]:
-                            eEta = iCat
-                else:       eEta = iEta
-                if uEta == 'None' or eEta == 'None':
+                            emuEta = iCat
+                else:       emuEta = iEta
+                if unpEta == 'None' or emuEta == 'None':
                     print '\n\nSUPER-BIZZARE JET THAT FALLS INTO NO ETA CATEGORIES!!!  eta_unp = %.3f, eta_emu = %.3f\n\n' % (vMaxUnp.Eta(), vMaxEmu.Eta())
                     continue
-                # if uEta != iEta:
+                # if unpEta != iEta:
                 #     print '  * L1T jet (eta = %.3f) not in same category as RECO jet (eta = %.3f)' % (vMaxUnp.Eta(), vOff.Eta())
 
 
                 for jPt in PT_CAT.keys():
-                    h_jet_den_unp[uEta][jPt][iCh].Fill( vOff.Pt() )
-                    h_jet_den_emu[eEta][jPt][iCh].Fill( vOff.Pt() )
+                    h_jet_den_unp[unpEta][jPt][iCh].Fill( vOff.Pt() )
+                    h_jet_den_emu[emuEta][jPt][iCh].Fill( vOff.Pt() )
+                    h_jet_den_unp['HBEF'][jPt][iCh].Fill( vOff.Pt() )
+                    h_jet_den_emu['HBEF'][jPt][iCh].Fill( vOff.Pt() )
                     if vMaxUnp.Pt() > PT_CAT[jPt][1]:
-                        h_jet_num_unp[uEta][jPt][iCh].Fill( vOff.Pt() )
+                        h_jet_num_unp[unpEta][jPt][iCh].Fill( vOff.Pt() )
+                        h_jet_num_unp['HBEF'][jPt][iCh].Fill( vOff.Pt() )
                     if vMaxEmu.Pt() > PT_CAT[jPt][1]:
-                        h_jet_num_emu[eEta][jPt][iCh].Fill( vOff.Pt() )
+                        h_jet_num_emu[emuEta][jPt][iCh].Fill( vOff.Pt() )
+                        h_jet_num_emu['HBEF'][jPt][iCh].Fill( vOff.Pt() )
 
                 if max_pt_unp > 0:
-                    h_jet_res_unp[uEta][iPt][iCh].Fill( (vMaxUnp.Pt() - vOff.Pt()) / vOff.Pt() )
-                    h_jet_dR_unp [iEta][iPt][iCh].Fill( vOff.DeltaR(vMaxUnp) )
-                else:
-                    h_jet_res_unp[uEta][iPt][iCh].Fill( res_bins[1] + 0.01 )
-                    h_jet_dR_unp [iEta][iPt][iCh].Fill( dR_bins[2] - 0.01 )
+                    h_jet_res_unp[unpEta][iPt][iCh].Fill( (vMaxUnp.Pt() - vOff.Pt()) / vOff.Pt() )
+                    h_jet_dR_unp [unpEta][iPt][iCh].Fill( vOff.DeltaR(vMaxUnp) )
+                    h_jet_res_unp['HBEF'][iPt][iCh].Fill( (vMaxUnp.Pt() - vOff.Pt()) / vOff.Pt() )
+                    h_jet_dR_unp ['HBEF'][iPt][iCh].Fill( vOff.DeltaR(vMaxUnp) )
 
                 if max_pt_emu > 0:
-                    h_jet_res_emu[eEta][iPt][iCh].Fill( (vMaxEmu.Pt() - vOff.Pt()) / vOff.Pt() )
-                    h_jet_dR_emu [iEta][iPt][iCh].Fill( vOff.DeltaR(vMaxEmu) )
-                else:
-                    h_jet_res_emu[eEta][iPt][iCh].Fill( res_bins[1] + 0.01 )
-                    h_jet_dR_emu [iEta][iPt][iCh].Fill( dR_bins[2] - 0.01 )
+                    h_jet_res_emu[emuEta][iPt][iCh].Fill( (vMaxEmu.Pt() - vOff.Pt()) / vOff.Pt() )
+                    h_jet_dR_emu [emuEta][iPt][iCh].Fill( vOff.DeltaR(vMaxEmu) )
+                    h_jet_res_emu['HBEF'][iPt][iCh].Fill( (vMaxEmu.Pt() - vOff.Pt()) / vOff.Pt() )
+                    h_jet_dR_emu ['HBEF'][iPt][iCh].Fill( vOff.DeltaR(vMaxEmu) )
 
             ## End loop: for iOff in range(nOffJets):
 
