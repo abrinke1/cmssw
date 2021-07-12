@@ -7,6 +7,7 @@ R.gROOT.SetBatch(True)  ## Don't print histograms to screen while processing
 
 from subprocess import Popen,PIPE
 import os
+import sys
 import json
 import math
 
@@ -102,7 +103,7 @@ def main():
     ### Book histograms
     ###################
 
-    mpt_bins  = [20, 0,  20]      ## pT bins for muons
+    mpt_bins  = [30, 0,  30]      ## pT bins for muons
     jpt_bins  = [80, 0, 400]      ## pT bins for jets and HT
     eta_bins  = [60, -3.0, 3.0 ]  ## eta bins for muons and jets
 
@@ -246,7 +247,7 @@ def main():
 
                 if (BX != 0):        continue
                 if (abs(eta) > 2.5): continue
-                if pt > 30: HTTer_unp += pt
+                if pt > 30.5: HTTer_unp += pt
                 iJet += 1
                 if iJet <= 4:
                     vec['unp_jet%d' % iJet].SetPtEtaPhiM(pt, eta, phi, 0)
@@ -267,7 +268,7 @@ def main():
 
                 if (BX != 0):        continue
                 if (abs(eta) > 2.5): continue
-                if pt > 30: HTTer_emu += pt
+                if pt > 30.5: HTTer_emu += pt
                 iJet += 1
                 if iJet <= 4:
                     vec['emu_jet%d' % iJet].SetPtEtaPhiM(pt, eta, phi, 0)
@@ -286,6 +287,15 @@ def main():
             cuts['_PS']      = [[280,70,55,40,35], [0,0,0,0,0]]  ## HTT280er_QuadJet_70_55_40_35_er2p4
             cuts['_PS_low']  = [[280,45,40,35,35], [0,0,0,0,0]]  ## HTT280er_QuadJet_45_40_35_35_er2p4
             cuts['_PS_pt35'] = [[280,35,35,35,35], [0,0,0,0,0]]  ## HTT280er_QuadJet_35_35_35_35_er2p4
+
+            ## Check manually computed HTTer vs. NTuple HTTer
+            ## HTTer is sumEt "type 1" : https://github.com/cms-sw/cmssw/blob/CMSSW_11_2_X/DataFormats/L1Trigger/interface/EtSum.h#L24
+            ## Indexed differently for emulator because unpacked data has 5 BX. Checked which index satisfies sumType == 1 and sumBx == 0.
+            if abs(HTTer_unp - Unp_br.sumEt[27]) >= 0.5 or abs(HTTer_emu - Emu_br.sumEt[4]) >= 0.5:
+                print '\n\nBizzare error in event %s!!!' % run_str
+                print 'Manual HTTer_unp (emu) = %.1f (%.1f), NTuple = %.1f (%.1f)' % (HTTer_unp, HTTer_emu, Unp_br.sumEt[27], Emu_br.sumEt[4])
+                print 'Quitting!!!\n'
+                sys.exit()
 
             ## Check which thresholds failed for each trigger path
             for key in cuts.keys():
