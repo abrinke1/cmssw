@@ -12,7 +12,7 @@ import json
 import math
 
 
-PRT_EVT  = 10000  ## Print every Nth event
+PRT_EVT  = 2000   ## Print every Nth event
 MAX_EVT  = 100000 ## Number of events to process        (set to -1 for all events)
 MAX_FILE = 50     ## Maximum number of files to process (set to -1 for all files)
 VERBOSE  = False  ## Print extra information
@@ -131,6 +131,20 @@ def main():
     hst['QuadJet_fail_PS_low']  = R.TH1D('h_QuadJet_fail_PS_low',  'QuadJet only threshold failed (HT 280, pT 45/40/35/35)', 6, -0.5, 5.5)
     hst['QuadJet_fail_PS_pt35'] = R.TH1D('h_QuadJet_fail_PS_pt35', 'QuadJet only threshold failed (HT 280, pT 35/35/35/35)', 6, -0.5, 5.5)
 
+    hst['HT_vs_Jet4_pt']     = R.TH2D('h_HT_vs_Jet4_pt',     '4th jet pT vs. HTTer',        17, 200, 370,  6,  25,  55)
+    hst['HT_vs_JetFwd_pt']   = R.TH2D('h_HT_vs_JetFwd_pt',   'Forward jet pT vs. HTTer',    17, 200, 370, 16,  20, 100)
+    hst['HT_vs_Dijet_mass']  = R.TH2D('h_HT_vs_Dijet_mass',  'Maximum mass(jj) vs. HTTer',  17, 200, 370, 20, 200, 600)
+    hst['HT_vs_JetFwd_mass'] = R.TH2D('h_HT_vs_JetFwd_mass', 'Mass(jet, jetFwd) vs. HTTer', 17, 200, 370, 20, 200, 600)
+    hst['HT_vs_Muon_pt']     = R.TH2D('h_HT_vs_Muon_pt',     'SingleMu pT vs. HTTer',       18, 150, 330, 13,   0, 13)
+    hst['HT_vs_MuDR_pt']     = R.TH2D('h_HT_vs_MuDR_pt',     'Mu pT (dR < 0.4) vs. HTTer',  18, 150, 330, 13,   0, 13)
+
+    hst['Dijet_eta1_vs_eta2'] = R.TH2D('h_Dijet_eta1_vs_eta2', 'Dijet eta(jet2) vs. eta(jet1)', 120, -5.22, 5.22, 120, -5.22, 5.22)
+
+    for key in hst.keys():
+        if not key.startswith('HT_vs'): continue
+        hst[key+'_excl'] = hst[key].Clone(key+'_excl')
+        hst[key+'_excl'].SetTitle( hst[key].GetTitle()+' [excl]')
+
 
     ####################
     ### Loop over events
@@ -138,6 +152,7 @@ def main():
 
     iEvt = 0    ## Total event counter
     nEvtZB = 0  ## Number of events considered (base "ZeroBias" rate)
+    nSkip  = 0  ## Number of events skipped due to HTTer mis-calculation
     print '\nEntering loop over %d chains' % len(chains['Unp'])
     for iCh in range(len(chains['Unp'])):
 
@@ -187,14 +202,23 @@ def main():
 
             vec = {}  ## TLorentzVectors
             for src in ['unp', 'emu']:
-                for obj in ['muon', 'jet1', 'jet2', 'jet3', 'jet4']:
+                for obj in ['muon', 'jet1', 'jet2', 'jet3', 'jet4','jetFwd']:
                     vec['%s_%s' % (src, obj)] = R.TLorentzVector()
-            ## HTTer sums
+            jVecsUnp = []
+            jVecsEmu = []
+            ## HTTer sums (pT > 30, |eta| < 2.5)
             HTTer_unp = 0
             HTTer_emu = 0
-            ## Minimum dR between a jet and muon
+            ## Minimum dR between a 30 GeV central jet and muon
             min_dR_muon_jet_unp = 999.
             min_dR_muon_jet_emu = 999.
+            ## Maximum di-jet mass for 30 GeV jets
+            max_dijet_mass_unp = 0.
+            max_dijet_mass_emu = 0.
+            max_jetFwd_mass_unp = 0.
+            max_jetFwd_mass_emu = 0.
+            dijet_eta_unp = [0,0]
+            dijet_eta_emu = [0,0]
 
         
             ########################
@@ -210,6 +234,7 @@ def main():
 
                 if (BX  !=  0):      continue
                 if (qual < 12):      continue
+                if (pt  < 0.5):      continue
                 if (abs(eta) > 2.4): continue
                 vec['unp_muon'].SetPtEtaPhiM(pt, eta, phi, 0)
                 break
@@ -228,6 +253,7 @@ def main():
 
                 if (BX  !=  0):      continue
                 if (qual < 12):      continue
+                if (pt  < 0.5):      continue
                 if (abs(eta) > 2.4): continue
                 vec['emu_muon'].SetPtEtaPhiM(pt, eta, phi, 0)
                 break
@@ -237,7 +263,7 @@ def main():
             #######################
             ###  Unpacked jets  ###
             #######################
-            iJet = 0  ## Count selected jets
+            nJetCen = 0  ## Count selected jets
             for i in range(nUnpJet):
                 BX     = int(Unp_br.jetBx[i])
                 pt     = float(Unp_br.jetEt[i]) + 0.01
@@ -245,20 +271,40 @@ def main():
                 phi    = float(Unp_br.jetPhi[i])
                 if VERBOSE: print 'Unpacked jet %d BX = %d, pt = %.2f, eta = %.2f' % (i, BX, pt, eta)
 
-                if (BX != 0):        continue
-                if (abs(eta) > 2.5): continue
-                if pt > 30.5: HTTer_unp += pt
-                iJet += 1
-                if iJet <= 4:
-                    vec['unp_jet%d' % iJet].SetPtEtaPhiM(pt, eta, phi, 0)
-                    if vec['unp_muon'].Pt() > 0.5:
-                        min_dR_muon_jet_unp = min(min_dR_muon_jet_unp, vec['unp_jet%d' % iJet].DeltaR(vec['unp_muon']))
+                if (BX != 0): continue
+                ## Compute jet 4-vector and maximum di-jet mass
+                vecTmp = R.TLorentzVector()  ## Need to instantiate a brand new TLorentzVector!!!
+                vecTmp.SetPtEtaPhiM(pt, eta, phi, 0)
+                for jVec in jVecsUnp:
+                    if pt > 30.5 and jVec.Pt() > 30.5:
+                        if (vecTmp+jVec).M() > max_dijet_mass_unp:
+                            max_dijet_mass_unp = (vecTmp+jVec).M()
+                            dijet_eta_unp = [jVec.Eta(), eta]
+                        if abs(eta) > 2.5 or abs(jVec.Eta()) > 2.5:
+                            max_jetFwd_mass_unp = max(max_jetFwd_mass_unp, (vecTmp+jVec).M())
+                jVecsUnp.append(vecTmp)
+                ## Store highest-pT forward jet, but don't use for HTTer or central jet triggers
+                if (abs(eta) > 2.5):
+                    if pt > vec['unp_jetFwd'].Pt():
+                        vec['unp_jetFwd'] = vecTmp
+                    continue
+                ## Store first 4 central jets
+                nJetCen += 1
+                if nJetCen <= 4:
+                    vec['unp_jet%d' % nJetCen] = vecTmp
+                ## Only use central jets with pT > 30 for HTTer and muon matching
+                if pt < 30.5: continue
+                HTTer_unp += pt
+                ## Find muons overlapping any central jet with pT > 30
+                if vec['unp_muon'].Pt() > 0.5:
+                    min_dR_muon_jet_unp = min(min_dR_muon_jet_unp, vecTmp.DeltaR(vec['unp_muon']))
             ## End loop: for i in range(nUnpJet)
+
 
             #######################
             ###  Emulated jets  ###
             #######################
-            iJet = 0  ## Count selected jets
+            nJetCen = 0  ## Count selected jets
             for i in range(nEmuJet):
                 BX     = int(Emu_br.jetBx[i])
                 pt     = float(Emu_br.jetEt[i]) + 0.01
@@ -266,14 +312,33 @@ def main():
                 phi    = float(Emu_br.jetPhi[i])
                 if VERBOSE: print 'Emulated jet %d BX = %d, pt = %.2f, eta = %.2f' % (i, BX, pt, eta)
 
-                if (BX != 0):        continue
-                if (abs(eta) > 2.5): continue
-                if pt > 30.5: HTTer_emu += pt
-                iJet += 1
-                if iJet <= 4:
-                    vec['emu_jet%d' % iJet].SetPtEtaPhiM(pt, eta, phi, 0)
-                    if vec['emu_muon'].Pt() > 0.5:
-                        min_dR_muon_jet_unp = min(min_dR_muon_jet_unp, vec['emu_jet%d' % iJet].DeltaR(vec['emu_muon']))
+                if (BX != 0): continue
+                ## Compute jet 4-vector and maximum di-jet mass
+                vecTmp = R.TLorentzVector()  ## Need to instantiate a brand new TLorentzVector!!!
+                vecTmp.SetPtEtaPhiM(pt, eta, phi, 0)
+                for jVec in jVecsEmu:
+                    if pt > 30.5 and jVec.Pt() > 30.5:
+                        if (vecTmp+jVec).M() > max_dijet_mass_emu:
+                            max_dijet_mass_emu = (vecTmp+jVec).M()
+                            dijet_eta_emu = [jVec.Eta(), eta]
+                        if abs(eta) > 2.5 or abs(jVec.Eta()) > 2.5:
+                            max_jetFwd_mass_emu = max(max_jetFwd_mass_emu, (vecTmp+jVec).M())
+                jVecsEmu.append(vecTmp)
+                ## Store highest-pT forward jet, but don't use for HTTer or central jet triggers
+                if (abs(eta) > 2.5):
+                    if pt > vec['emu_jetFwd'].Pt():
+                        vec['emu_jetFwd'] = vecTmp
+                    continue
+                ## Store first 4 central jets
+                nJetCen += 1
+                if nJetCen <= 4:
+                    vec['emu_jet%d' % nJetCen] = vecTmp
+                ## Only use central jets with pT > 30 for HTTer
+                if pt < 30.5: continue
+                HTTer_emu += pt
+                ## Find muons overlapping any central jet with pT > 30 GeV
+                if vec['emu_muon'].Pt() > 0.5:
+                    min_dR_muon_jet_emu = min(min_dR_muon_jet_emu, vecTmp.DeltaR(vec['emu_muon']))
             ## End loop: for i in range(nEmuJet)
 
 
@@ -292,10 +357,32 @@ def main():
             ## HTTer is sumEt "type 1" : https://github.com/cms-sw/cmssw/blob/CMSSW_11_2_X/DataFormats/L1Trigger/interface/EtSum.h#L24
             ## Indexed differently for emulator because unpacked data has 5 BX. Checked which index satisfies sumType == 1 and sumBx == 0.
             if abs(HTTer_unp - Unp_br.sumEt[27]) >= 0.5 or abs(HTTer_emu - Emu_br.sumEt[4]) >= 0.5:
-                print '\n\nBizzare error in event %s!!!' % run_str
-                print 'Manual HTTer_unp (emu) = %.1f (%.1f), NTuple = %.1f (%.1f)' % (HTTer_unp, HTTer_emu, Unp_br.sumEt[27], Emu_br.sumEt[4])
-                print 'Quitting!!!\n'
-                sys.exit()
+                print '\n\nBizzare error in event %s!!!' % evt_str
+                print 'Manual HTTer_unp (emu) = %.1f (%.1f), NTuple = %.1f (%.1f) with BX %d (%d), type %d (%d)' % (HTTer_unp, HTTer_emu, Unp_br.sumEt[27], Emu_br.sumEt[4],
+                                                                                                                    Unp_br.sumBx[27], Emu_br.sumBx[4], Unp_br.sumType[27], Emu_br.sumType[4])
+                # for k in range(1,5):
+                #     print '  x jet_%d  = %.2f (%.2f)' % (k, vec['unp_jet%d' % k].Pt(), vec['emu_jet%d' % k].Pt())
+                for i in range(nUnpJet):
+                    BX     = int(Unp_br.jetBx[i])
+                    pt     = float(Unp_br.jetEt[i]) + 0.01
+                    eta    = float(Unp_br.jetEta[i])
+                    if BX == 0 and abs(eta) < 2.5 and pt > 30.5:
+                        print 'Unpacked jet #%d pt = %.2f, eta = %.2f' % (i+1, pt, eta)
+                for j in range(nEmuJet):
+                    BX     = int(Emu_br.jetBx[j])
+                    pt     = float(Emu_br.jetEt[j]) + 0.01
+                    eta    = float(Emu_br.jetEta[j])
+                    if BX == 0 and abs(eta) < 2.5 and pt > 30.5:
+                        print 'Emulated jet #%d pt = %.2f, eta = %.2f' % (j+1, pt, eta)
+                # for i in range(len(Unp_br.sumEt)):
+                #     print '  * Unp[%d] = %.2f' % (i, Unp_br.sumEt[i])
+                # for j in range(len(Emu_br.sumEt)):
+                #     print '  - Emu[%d] = %.2f' % (j, Emu_br.sumEt[j])
+                # print 'Quitting!!!\n'
+                # sys.exit()
+                print 'Skipping!!!\n'
+                nSkip += 1
+                continue
 
             ## Check which thresholds failed for each trigger path
             for key in cuts.keys():
@@ -316,6 +403,56 @@ def main():
                             hst['QuadJet_fail'+key].Fill(j+1)
             ## End loop: for key in cuts.keys()
 
+            ## Bool checking for events which pass basic "core" unprescaled jet triggers from 2018, excluding HTTer + QuadJet:
+            ## HTT360er, SingleJet180, DoubleJet_110_35_DoubleJet35_Mass_Min620, and TripleJet_95_75_65_DoubleJet_75_65_er2p5
+            max_jet_pt_unp   = max(vec['unp_jet1'].Pt(), vec['unp_jetFwd'].Pt())
+            pass_core_VBF    = (max_jet_pt_unp > 110 and max_dijet_mass_unp > 620)
+            pass_core_trijet = (   (vec['unp_jet1'].Pt()   > 75 and vec['unp_jet2'].Pt()   > 65) and
+                                 ( (vec['unp_jetFwd'].Pt() > 95)                                                                 or
+                                   (vec['unp_jet1'].Pt()   > 95 and vec['unp_jetFwd'].Pt() > 75)                                 or
+                                   (vec['unp_jet1'].Pt()   > 95 and vec['unp_jet2'].Pt()   > 75 and vec['unp_jetFwd'].Pt() > 65) or
+                                   (vec['unp_jet1'].Pt()   > 95 and vec['unp_jet2'].Pt()   > 75 and vec['unp_jet3'].Pt()   > 65) ) )
+            fail_jet_core  = ( HTTer_unp < 360 and max_jet_pt_unp < 180 and (not pass_core_VBF) and (not pass_core_trijet) )
+
+            ## Check occupancy for HT vs. jet4 / jetFwd / muon cross-triggers
+            if HTTer_unp > 200 and vec['unp_jet4'].Pt() > 25:
+                hst['HT_vs_Jet4_pt'].Fill( min(369, HTTer_unp), min(54, vec['unp_jet4'].Pt()) )
+                ## Check exclusive rate (events not passing unprescaled core)
+                if fail_jet_core:
+                    hst['HT_vs_Jet4_pt_excl'].Fill( min(369, HTTer_unp), min(54, vec['unp_jet4'].Pt()) )
+
+            if HTTer_unp > 200 and vec['unp_jetFwd'].Pt() > 20:
+                hst['HT_vs_JetFwd_pt'].Fill( min(369, HTTer_unp), min(99, vec['unp_jetFwd'].Pt()) )
+                ## Check exclusive rate (events not passing unprescaled core or HTT320er_QuadJet_70_55_40_40_er2p4
+                if fail_jet_core and cuts[''][1].count(1) > 0:
+                    hst['HT_vs_JetFwd_pt_excl'].Fill( min(369, HTTer_unp), min(99, vec['unp_jetFwd'].Pt()) )
+
+            if HTTer_unp > 200 and max_dijet_mass_unp > 200:
+                hst['HT_vs_Dijet_mass'].Fill( min(369, HTTer_unp), min(599, max_dijet_mass_unp) )
+                hst['Dijet_eta1_vs_eta2'].Fill( dijet_eta_unp[0], dijet_eta_unp[1] )
+                ## Check exclusive rate (events not passing unprescaled core or HTT320er_QuadJet_70_55_40_40_er2p4)
+                if fail_jet_core and cuts[''][1].count(1) > 0:
+                    hst['HT_vs_Dijet_mass_excl'].Fill( min(369, HTTer_unp), min(599, max_dijet_mass_unp) )
+
+            if HTTer_unp > 200 and max_jetFwd_mass_unp > 200:
+                hst['HT_vs_JetFwd_mass'].Fill( min(369, HTTer_unp), min(599, max_jetFwd_mass_unp) )
+                ## Check exclusive rate (events not passing unprescaled core or HTT320er_QuadJet_70_55_40_40_er2p4)
+                if fail_jet_core and cuts[''][1].count(1) > 0:
+                    hst['HT_vs_JetFwd_mass_excl'].Fill( min(369, HTTer_unp), min(599, max_jetFwd_mass_unp) )
+
+            if HTTer_unp > 150 and vec['unp_muon'].Pt() > 0.5:
+                hst['HT_vs_Muon_pt'].Fill( min(329, HTTer_unp), min(12.9, vec['unp_muon'].Pt()) )
+                ## Check exclusive rate (events not passing unprescaled core or HTT320er_QuadJet_70_55_40_40_er2p4)
+                if fail_jet_core and cuts[''][1].count(1) > 0:
+                    hst['HT_vs_Muon_pt_excl'].Fill( min(329, HTTer_unp), min(12.9, vec['unp_muon'].Pt()) )
+
+            if HTTer_unp > 150 and vec['unp_muon'].Pt() > 0.5 and min_dR_muon_jet_unp < 0.4:
+                hst['HT_vs_MuDR_pt'].Fill( min(329, HTTer_unp), min(12.9, vec['unp_muon'].Pt()) )
+                ## Check exclusive rate (events not passing unprescaled core or HTT320er_QuadJet_70_55_40_40_er2p4)
+                if fail_jet_core and cuts[''][1].count(1) > 0:
+                    hst['HT_vs_MuDR_pt_excl'].Fill( min(329, HTTer_unp), min(12.9, vec['unp_muon'].Pt()) )
+
+
             ## Require event to fail exactly one cut in HTT320er_QuadJet_70_55_40_40_er2p4
             if TRG_FAIL and (HTTer_unp > 360 or cuts[''][1].count(1) != 1): continue
 
@@ -330,6 +467,7 @@ def main():
                         if var == 'pt':
                             if obj == 'muon': bins = mpt_bins
                             else:             bins = jpt_bins
+                            if vec['%s_%s' % (src, obj)].Pt() < 0.5: continue
                             hst['%s_%s_%s' % (obj, var, src)].Fill( max(bins[1]+0.01, min(bins[2]-0.01, vec['%s_%s' % (src, obj)].Pt()) ) )
                         if var == 'eta':
                             bins = eta_bins
@@ -348,6 +486,8 @@ def main():
         ## End loop: for jEvt in range(chains['Unp'][iCh].GetEntries())
     ## End loop: for iCh in range(len(chains['Unp'])):
     print '\nFinished loop over chains'
+    nEvtZB -= nSkip
+    print '\n%d total ZB events processed, skipped %d due to corrupt HTTer value' % (nEvtZB, nSkip)
 
 
     out_file.cd()
@@ -358,15 +498,25 @@ def main():
         hist.SetLineWidth(2)
         if 'unp' in key: hist.SetLineColor(R.kBlack)
         if 'emu' in key: hist.SetLineColor(R.kBlue)
-        hist.GetXaxis().SetTitle( hist.GetTitle() )
-        hist.GetYaxis().SetTitle( 'Events' )
+
+        if '_vs_' in key:
+            hist.GetXaxis().SetTitle( hist.GetTitle().split(' vs. ')[1].replace(' [excl]','')+' (GeV)' )
+            hist.GetYaxis().SetTitle( hist.GetTitle().split(' vs. ')[0]+' (GeV)' )
+            hist.GetZaxis().SetTitle( 'Events' )
+        else:
+            hist.GetXaxis().SetTitle( hist.GetTitle() )
+            hist.GetYaxis().SetTitle( 'Events' )
         out_file.cd()
         hist.Write()
 
         ## Create "rate" version of each plot in kHz
         hist_rate = hist.Clone(hist.GetName()+'_rate')
         hist_rate.Scale(28600. / nEvtZB)  ## Scale by 28.6 MHz ZeroBias rate / # of events considered
-        hist_rate.GetYaxis().SetTitle( 'Rate (kHz)' )
+        hist_rate.SetTitle( hist.GetTitle()+' rate' )
+        if '_vs_' in key:
+            hist_rate.GetZaxis().SetTitle( 'Rate (kHz)' )
+        else:
+            hist_rate.GetYaxis().SetTitle( 'Rate (kHz)' )
         hist_rate.Write()
 
         ## Create cumulative version of pT threshold plots
@@ -374,29 +524,57 @@ def main():
         for obj in ['muon', 'jet1', 'jet2', 'jet3', 'jet4', 'HT']:
             if (obj+'_pt') in key:
                 isThresh = True
+                hist_thresh = hist_rate.GetCumulative(False, '_thresh')
+                for iX in range(1, hist.GetNbinsX()+1):
+                    hist_thresh.SetBinError(iX, hist_thresh.GetBinContent(iX) / math.sqrt(hist.Integral(iX, hist.GetNbinsX())+1))
+                break
+
+        ## Manual cumulative plot for 2D rates
+        if '_vs_' in key:
+            if not 'eta1_vs_eta2' in key:
+                isThresh = True
+            hist_thresh = hist_rate.Clone(hist_rate.GetName()+'_thresh')
+            hist_thresh.GetYaxis().SetTitle( hist.GetYaxis().GetTitle().replace('(GeV)','threshold (GeV)') )
+            nX = hist.GetNbinsX()
+            nY = hist.GetNbinsY()
+            for iX in range(1, nX+1):
+                for iY in range(1, nY+1):
+                    hist_thresh.SetBinContent(iX, iY, hist_rate.Integral(iX, nX, iY, nY))
+                    ## Set uncertainty to cumulative rate / sqrt(N)
+                    hist_thresh.SetBinError(iX, iY, hist_thresh.GetBinContent(iX, iY) / math.sqrt(hist.Integral(iX, nX, iY, nY)+1))
+
         if isThresh:
-            hist_thresh = hist_rate.GetCumulative(False, '_thresh')
-            hist_thresh.GetYaxis().SetTitle( 'Rate (kHz)' )
-            hist_thresh.GetXaxis().SetTitle( hist.GetXaxis().GetTitle()+' threshold (GeV)' )
-            hist_thresh.SetTitle( hist.GetTitle()+' cumulative rate vs. threshold' )
+            hist_thresh.GetXaxis().SetTitle( hist.GetXaxis().GetTitle().replace('(GeV)','threshold (GeV)') )
+            hist_thresh.SetTitle( hist.GetTitle()+' cumulative rate over threshold' )
             hist_thresh.Write()
 
+        ## Draw plots to canvas
         if key.endswith('emu'): continue  ## Skip emulated plots for pngs
+
+        ## Draw histograms (1D) or colors with text (2D)
+        opt = 'hist'
+        R.gStyle.SetOptStat(1)  ## Draw stats boxes
+        if '_vs_' in key:
+            opt = 'colztext'
+            R.gStyle.SetPaintTextFormat("4.1f")  ## Print rates to single decimal precision
+            if 'eta1_vs_eta2' in key: opt = 'colz'
 
         can = R.TCanvas('can_'+key, 'can_'+key, 1)
         can.cd()
         can.Clear()
-        hist.Draw('hist')
-        if not TRG_FAIL and not 'QuadJet' in key: can.SetLogy()
+        hist.Draw(opt)
+        if not TRG_FAIL and not 'QuadJet' in key and not '_vs_' in key: can.SetLogy()
         can.SaveAs('plots/png/'+out_file_str+'/'+key+'.png')
 
         can.Clear()
-        hist_rate.Draw('hist')
+        R.gStyle.SetOptStat(0)  ## Don't draw stats boxes
+        if 'text' in opt: opt += 'e'
+        hist_rate.Draw(opt)
         can.SaveAs('plots/png/'+out_file_str+'/'+key+'_rate.png')
 
         if isThresh:
             can.Clear()
-            hist_thresh.Draw('hist')
+            hist_thresh.Draw(opt)
             can.SaveAs('plots/png/'+out_file_str+'/'+key+'_rate_thresh.png')
 
     ## End loop: for key in hst.keys()
